@@ -1,3 +1,5 @@
+# This is a VERY EARLY PROTOTYPE. Don't use it. Not ready for anything yet.
+
 # DocuWeave - Modern Markdown Editor
 
 ## Overview
