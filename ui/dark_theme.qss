@@ -1,46 +1,83 @@
-QWidget {
-    background-color: #2E2E2E;
-    color: #FFFFFF;
+/* Main Window */
+QMainWindow {
+    background-color: #2e2e2e;
+    color: white;
+    border-radius: 10px;
+    border: 1px solid #3e3e3e;
 }
 
-QTextEdit {
-    background-color: #1E1E1E;
-    color: #FFFFFF;
-    border: 1px solid #444444;
-}
-
-QPushButton {
-    background-color: #3C3C3C;
-    color: #FFFFFF;
+/* Override previous styles for maximized state */
+QMainWindow[maximized="true"] {
     border: none;
-    padding: 5px 10px;
+}
+
+/* Generic Widgets */
+QWidget {
+    background-color: #2e2e2e;
+    color: white;
+}
+
+/* Buttons */
+QPushButton {
+    background-color: #3e3e3e;
+    color: white;
+    border: none;
+    padding: 5px;
     border-radius: 5px;
+    font-size: 22px;
 }
 
 QPushButton:hover {
-    background-color: #5A5A5A;
+    background-color: #5e5e5e;
 }
 
-QLabel {
-    color: #FFFFFF;
+/* Tree View (Project Sidebar) */
+QTreeView {
+    background-color: #252526;
+    border: none;
 }
 
-QLineEdit {
-    background-color: #1E1E1E;
-    color: #FFFFFF;
-    border: 1px solid #444444;
+QTreeView::item {
+    color: white;
+    padding: 5px;
 }
 
-QComboBox {
-    background-color: #1E1E1E;
-    color: #FFFFFF;
-    border: 1px solid #444444;
+QTreeView::item:hover {
+    background-color: #2A2D2E;
 }
 
-QComboBox::drop-down {
-    background-color: #3C3C3C;
+QTreeView::item:selected {
+    background-color: #094771;
 }
 
+/* Context Menu */
+QMenu {
+    background-color: #2d2d2d;
+    color: white;
+    border: 1px solid #3d3d3d;
+}
+
+QMenu::item:selected {
+    background-color: #094771;
+}
+
+/* Editor Frame */
+QFrame#editorFrame {
+    background-color: #1e1e1e;
+    border-radius: 10px;
+}
+
+/* Toolbar Frame */
+QFrame#toolbarFrame {
+    background-color: #1e1e1e;
+}
+
+/* Splitter */
+QSplitter::handle {
+    background-color: #3d3d3d;
+}
+
+/* Scroll Bars */
 QScrollBar:vertical {
     background: #3C3C3C;
     width: 10px;
@@ -50,10 +87,103 @@ QScrollBar::handle:vertical {
     background: #5A5A5A;
 }
 
-QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
     background: none;
 }
 
-QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+QScrollBar::up-arrow:vertical,
+QScrollBar::down-arrow:vertical {
     background: none;
+}
+
+/* Title Bar */
+#titleBar {
+    background-color: #1e1e1e;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    min-height: 50px;  // Adjust height to fit larger buttons
+}
+
+#titleLabel {
+    background-color: transparent;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+#titleLabel:hover {
+    background-color: #3e3e3e;
+}
+
+#windowButton {
+    background-color: transparent;
+    border: none;
+    border-radius: 20px;  // Adjust radius for larger buttons
+    color: white;
+    font-family: "Segoe UI";
+    font-size: 16px;
+    padding: 5px;
+}
+
+#windowButton:hover {
+    background-color: #3e3e3e;
+}
+
+/* Title Bar Menu */
+#titleMenuBar {
+    background-color: transparent;
+    border: none;
+    margin-left: 20px;
+    padding: 0;
+    fixed-width: 100px;  // Ensure fixed width
+}
+
+#titleMenuBar::item {
+    background-color: transparent;
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: #cccccc;
+    margin: 1px 4px;
+}
+
+#titleMenuBar::item:selected {
+    background-color: #3d3d3d;
+    color: white;
+}
+
+/* Menu Bar */
+QMenuBar {
+    background-color: #2d2d2d;
+    color: white;
+    padding: 2px;
+    border: none;
+    min-height: 30px;
+    max-height: 30px;
+}
+
+QMenuBar::item {
+    background-color: transparent;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin: 1px 4px;
+}
+
+QMenuBar::item:selected {
+    background-color: #3d3d3d;
+}
+
+QMenu {
+    background-color: #2d2d2d;
+    border: 1px solid #3d3d3d;
+    padding: 5px;
+}
+
+QMenu::item {
+    padding: 5px 20px;
+    border-radius: 4px;
+}
+
+QMenu::item:selected {
+    background-color: #3d3d3d;
 }

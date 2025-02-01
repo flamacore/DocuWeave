@@ -1,7 +1,13 @@
 from PyQt5.QtWidgets import QFrame, QVBoxLayout
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtWebChannel import QWebChannel
+from PyQt5.QtWebEngineWidgets import QWebEngineSettings
 from .custom_webview import CustomWebEngineView
+from .js_bridge import JavaScriptBridge
 
 class EditorWidget(QFrame):
+    text_changed = pyqtSignal(str)  # Rename signal to avoid collision
+
     def __init__(self, renderer, parent=None):
         super().__init__(parent)
         self.renderer = renderer
@@ -11,10 +17,18 @@ class EditorWidget(QFrame):
         self.web_view = CustomWebEngineView()
         layout.addWidget(self.web_view, stretch=1)  # Add stretch factor
 
+        # Configure web settings
+        settings = self.web_view.page().settings()
+        settings.setAttribute(QWebEngineSettings.LocalContentCanAccessFileUrls, True)
+        settings.setAttribute(QWebEngineSettings.LocalContentCanAccessRemoteUrls, True)
+        settings.setAttribute(QWebEngineSettings.JavascriptCanAccessClipboard, True)
+        settings.setAttribute(QWebEngineSettings.LocalStorageEnabled, True)
+
         # Store an HTML template for initial rendering
         self.html_template = """
         <html>
         <head>
+          <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
           <style>
             body {{ background-color: #1e1e1e; color: white; margin: 0; padding: 10px; font-family: sans-serif; font-size: 20px; }}
             h1 {{ font-size: 2.4em; }}
@@ -25,7 +39,32 @@ class EditorWidget(QFrame):
           <script>
           document.addEventListener("DOMContentLoaded", function() {{
               var editor = document.getElementById("editor");
+              
+              // Initialize QWebChannel after DOM is loaded
+              new QWebChannel(qt.webChannelTransport, function(channel) {{
+                  window.qt = channel.objects.content_bridge;
+                  
+                  // Set up content monitoring after channel is ready
+                  var lastContent = editor.innerHTML;
+                  setInterval(function() {{
+                      if (editor.innerHTML !== lastContent) {{
+                          lastContent = editor.innerHTML;
+                          window.qt.content_changed(lastContent);
+                      }}
+                  }}, 500);
+              }});
+
+              // Finish editing on blur
+              editor.addEventListener("blur", function() {{
+                  window.qt.content_changed(editor.innerHTML);
+              }});
+              
+              // On Enter (without Shift) finish editing (blur)
               editor.addEventListener("keydown", function(e) {{
+                  if (e.key === "Enter" && !e.shiftKey) {{
+                      e.preventDefault();
+                      editor.blur();
+                  }}
                   if (e.key === "Tab") {{
                       e.preventDefault();
                       if (e.shiftKey) {{
@@ -43,10 +82,23 @@ class EditorWidget(QFrame):
         </body>
         </html>
         """
+        
+        # Initialize JavaScript bridge
+        self.js_bridge = JavaScriptBridge()
+        self.js_bridge.contentChanged.connect(self._on_content_changed)
+        
+        # Initialize QWebChannel with the dedicated bridge object
+        self.channel = QWebChannel()
+        self.web_view.page().setWebChannel(self.channel)
+        self.channel.registerObject("content_bridge", self.js_bridge)
 
         # Render empty content on creation
         initial_content = self.renderer.render("")
         self.web_view.setHtml(self.html_template.format(content=initial_content))
+
+    def _on_content_changed(self, content):
+        """Handle content changes from JavaScript"""
+        self.text_changed.emit(content)
 
     def format_text(self, command, value=None):
         # Log the applied formatting
