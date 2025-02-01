@@ -1,11 +1,11 @@
-from PyQt5.QtWidgets import QFrame, QVBoxLayout
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtWidgets import QFrame, QVBoxLayout, QWidget
+from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWebChannel import QWebChannel
-from PyQt5.QtWebEngineWidgets import QWebEngineSettings
+from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineView
 from .custom_webview import CustomWebEngineView
 from .js_bridge import JavaScriptBridge
 
-class EditorWidget(QFrame):
+class EditorWidget(QWidget):
     text_changed = pyqtSignal(str)  # Rename signal to avoid collision
 
     def __init__(self, renderer, parent=None):
@@ -14,7 +14,9 @@ class EditorWidget(QFrame):
         self.setStyleSheet("background-color: #1e1e1e;")
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
-        self.web_view = CustomWebEngineView()
+        self.web_view = QWebEngineView()
+        self.web_view.setContextMenuPolicy(Qt.PreventContextMenu)
+        self.web_view.setFocusPolicy(Qt.StrongFocus)
         layout.addWidget(self.web_view, stretch=1)  # Add stretch factor
 
         # Configure web settings
@@ -26,6 +28,7 @@ class EditorWidget(QFrame):
 
         # Store an HTML template for initial rendering
         self.html_template = """
+        <!DOCTYPE html>
         <html>
         <head>
           <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
@@ -38,6 +41,7 @@ class EditorWidget(QFrame):
           </style>
           <script>
           document.addEventListener("DOMContentLoaded", function() {{
+
               var editor = document.getElementById("editor");
               
               // Initialize QWebChannel after DOM is loaded
@@ -63,7 +67,7 @@ class EditorWidget(QFrame):
               editor.addEventListener("keydown", function(e) {{
                   if (e.key === "Enter" && !e.shiftKey) {{
                       e.preventDefault();
-                      editor.blur();
+                      document.execCommand('insertParagraph', false);
                   }}
                   if (e.key === "Tab") {{
                       e.preventDefault();
