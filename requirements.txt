@@ -1,0 +1,7 @@
+Flask==2.0.1
+PyQt5>=5.15.0
+markdown>=3.4.0
+pytest==6.2.4
+PyQt5-sip==12.9.0
+PyQtWebEngine>=5.15.0
+colorama>=0.4.6
