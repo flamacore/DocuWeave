@@ -63,7 +63,7 @@ QMenu::item:selected {
 
 /* Editor Frame */
 QFrame#editorFrame {
-    background-color: #1e1e1e;
+    background-color: #2e2e2e;  /* Slightly lighter than default */
     border-radius: 10px;
 }
 

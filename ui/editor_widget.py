@@ -31,132 +31,46 @@ class EditorWidget(QWidget):
         settings.setAttribute(QWebEngineSettings.JavascriptCanAccessClipboard, True)
         settings.setAttribute(QWebEngineSettings.LocalStorageEnabled, True)
 
-        # Store an HTML template for initial rendering with escaped curly braces
+        # Revert HTML template to original: only editable content is present.
         self.html_template = '''<!DOCTYPE html>
 <html>
 <head>
     <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
     <style>
 body{{background-color:#1e1e1e;color:white;margin:0;padding:10px;font-family:sans-serif;font-size:20px}}
-h1{{font-size:2.4em}}
-h2{{font-size:2em}}
-h3{{font-size:1.7em}}
-#editor{{min-height:400px;outline:none;border-radius:10px}}
-.resizable-image{{position:relative;display:inline-block;margin:5px}}
-.resizable-image img{{max-width:100%;height:auto;cursor:move}}
-.resizable-image .resize-handle{{position:absolute;width:10px;height:10px;background:white;border:1px solid #666;border-radius:50%}}
-.resize-handle.nw{{top:-5px;left:-5px;cursor:nw-resize}}
-.resize-handle.ne{{top:-5px;right:-5px;cursor:ne-resize}}
-.resize-handle.sw{{bottom:-5px;left:-5px;cursor:sw-resize}}
-.resize-handle.se{{bottom:-5px;right:-5px;cursor:se-resize}}
+#editor{{min-height:400px;outline:none;border-radius:20px;max-width:800px;margin:0 auto;background-color:#333333;padding:20px;}}
     </style>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {{
-            var editor = document.getElementById("editor");
-            
-            new QWebChannel(qt.webChannelTransport, function(channel) {{
-                window.qt = channel.objects.content_bridge;
-                
-                var lastContent = editor.innerHTML;
-                setInterval(function() {{
-                    if (editor.innerHTML !== lastContent) {{
-                        lastContent = editor.innerHTML;
-                        window.qt.content_changed(lastContent);
-                    }}
-                }}, 500);
-            }});
-
-            editor.addEventListener("blur", function() {{
-                window.qt.content_changed(editor.innerHTML);
-            }});
-            
-            editor.addEventListener("keydown", function(e) {{
-                if (e.key === "Enter" && !e.shiftKey) {{
-                    e.preventDefault();
-                    document.execCommand('insertParagraph', false);
-                }}
-                if (e.key === "Tab") {{
-                    e.preventDefault();
-                    if (e.shiftKey) {{
-                        document.execCommand("outdent");
-                    }} else {{
-                        document.execCommand("indent");
-                    }}
-                }}
-            }});
-
-            function makeImageResizable(img) {{
-                const wrapper = document.createElement('div');
-                wrapper.className = 'resizable-image';
-                img.parentNode.insertBefore(wrapper, img);
-                wrapper.appendChild(img);
-                
-                ['nw','ne','sw','se'].forEach(function(pos) {{
-                    const handle = document.createElement('div');
-                    handle.className = 'resize-handle ' + pos;
-                    wrapper.appendChild(handle);
-                }});
-                
-                let isResizing = false;
-                let currentHandle = null;
-                let originalWidth = img.width;
-                let originalHeight = img.height;
-                let originalX = 0;
-                let originalY = 0;
-                
-                wrapper.addEventListener('mousedown', function(e) {{
-                    if (e.target.classList.contains('resize-handle')) {{
-                        isResizing = true;
-                        currentHandle = e.target;
-                        originalWidth = img.width;
-                        originalHeight = img.height;
-                        originalX = e.clientX;
-                        originalY = e.clientY;
-                        e.preventDefault();
-                    }}
-                }});
-                
-                document.addEventListener('mousemove', function(e) {{
-                    if (!isResizing) return;
-                    
-                    const deltaX = e.clientX - originalX;
-                    const deltaY = e.clientY - originalY;
-                    
-                    if (currentHandle.classList.contains('se')) {{
-                        img.style.width = (originalWidth + deltaX) + 'px';
-                        img.style.height = (originalHeight + deltaY) + 'px';
-                    }}
-                }});
-                
-                document.addEventListener('mouseup', function() {{
-                    isResizing = false;
-                    currentHandle = null;
-                }});
+        // New event listener for Enter and Tab keys
+        document.addEventListener("keydown", function(e) {{
+            if (e.key === "Enter" && !e.shiftKey) {{
+                e.preventDefault();
+                document.execCommand('insertParagraph', false);
             }}
-
-            // Make all existing images resizable
-            document.querySelectorAll('#editor img').forEach(makeImageResizable);
-            
-            // Make new images resizable when inserted
-            const observer = new MutationObserver(function(mutations) {{
-                mutations.forEach(function(mutation) {{
-                    mutation.addedNodes.forEach(function(node) {{
-                        if (node.nodeName === 'IMG' && !node.parentNode.classList.contains('resizable-image')) {{
-                            makeImageResizable(node);
-                        }}
-                    }});
-                }});
-            }});
-            
-            observer.observe(editor, {{ childList: true, subtree: true }});
+            if (e.key === "Tab") {{
+                e.preventDefault();
+                if (e.shiftKey) {{
+                    document.execCommand("outdent");
+                }} else {{
+                    document.execCommand("indent");
+                }}
+            }}
         }});
+        // ...existing JS code...
     </script>
 </head>
 <body>
-    <div id="editor" contenteditable="true">{content}</div>
+    <div id="editor" contenteditable="true">
+        {content}
+    </div>
 </body>
 </html>'''
         
+        # Set default title and content
+        self.current_title = "Untitled Document"
+        initial_content = self.renderer.render("")
+        self.web_view.setHtml(self.html_template.format(content=initial_content))
+
         # Initialize JavaScript bridge
         self.js_bridge = JavaScriptBridge()
         self.js_bridge.contentChanged.connect(self._on_content_changed)
@@ -165,10 +79,6 @@ h3{{font-size:1.7em}}
         self.channel = QWebChannel()
         self.web_view.page().setWebChannel(self.channel)
         self.channel.registerObject("content_bridge", self.js_bridge)
-
-        # Render empty content on creation
-        initial_content = self.renderer.render("")
-        self.web_view.setHtml(self.html_template.format(content=initial_content))
 
     def _on_content_changed(self, content):
         """Handle content changes from JavaScript"""
@@ -225,8 +135,15 @@ h3{{font-size:1.7em}}
         self.web_view.page().runJavaScript(js)
 
     def set_content(self, markdown_text: str):
+        import html
         rendered = self.renderer.render(markdown_text)
-        self.web_view.setHtml(self.html_template.format(content=rendered))
+        # Unescape HTML entities to prevent double-escaping
+        unescaped = html.unescape(rendered)
+        self.web_view.setHtml(self.html_template.format(content=unescaped))
+
+    def set_document_title(self, title: str):
+        # Title no longer shown; no action needed.
+        pass
 
     def get_content(self):
         code = "document.getElementById('editor').innerHTML;"

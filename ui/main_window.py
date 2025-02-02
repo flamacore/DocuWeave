@@ -106,8 +106,7 @@ class MainWindow(QMainWindow):
         
         for btn in (min_btn, max_btn, close_btn):
             btn.setObjectName("windowButton")
-            btn.setFixedSize(40, 40)  # Increase button size
-            btn.setFont(QFont("Segoe UI", 16))  # Increase font size
+            btn.setFixedSize(30, 30)  # Increase button size
             layout.addWidget(btn)
         
         min_btn.clicked.connect(self.showMinimized)
@@ -154,7 +153,7 @@ class MainWindow(QMainWindow):
         
         # Create a frame to hold the WYSIWYG editor and toolbar
         container = QFrame()
-        container.setStyleSheet("background-color: #1e1e1e;")
+        container.setObjectName("editorFrame")  # Use qss styling, remove inline style
         editor_layout.addWidget(container, stretch=1)  # Add stretch factor
         container_layout = QVBoxLayout(container)
         container_layout.setContentsMargins(0,0,0,0)
@@ -192,20 +191,39 @@ class MainWindow(QMainWindow):
         # Remove save button as we're doing real-time saves
         button_frame.setVisible(False)
 
-    def create_new_document(self):
-        """Create a new document and switch to it"""
-        current_content = None
+    def _save_current_document(self, callback=None):
+        """Save current document content; then call callback."""
         if self.project.current_file:
-            # Save current content before switching
             self.editor_widget.web_view.page().runJavaScript(
                 "document.getElementById('editor').innerHTML;",
-                lambda content: self._handle_document_save(content)
+                lambda content: (self.project.update_document(self.project.current_file, content), callback() if callback else None)
             )
-        
-        # Create new document
-        doc_id = self.project.create_untitled_document()
-        self.sidebar.update_tree(self.project.documents)
-        self.change_document(doc_id)
+        else:
+            if callback:
+                callback()
+
+    def change_document(self, new_path):
+        """Switch to a different document: save current, clear editor, then load new content."""
+        if new_path == self.project.current_file:
+            return  # No need to save/reload if same document is clicked
+        def load_new():
+            self.editor_widget.set_content("")
+            if new_path in self.project.documents:
+                new_content = self.project.get_document(new_path)
+                self.editor_widget.set_content(new_content)
+                self.project.current_file = new_path
+            else:
+                self.create_new_document()
+        self._save_current_document(load_new)
+
+    def create_new_document(self):
+        """Save current document, then create a new untitled document and open it."""
+        def after_save():
+            new_doc_id = self.project.create_untitled_document()
+            self.sidebar.update_tree(self.project.documents)
+            self.editor_widget.set_content("")
+            self.project.current_file = new_doc_id
+        self._save_current_document(after_save)
 
     def _setup_menu_bar(self, menu):
         """Setup menu bar items"""
@@ -222,16 +240,6 @@ class MainWindow(QMainWindow):
         new_project.triggered.connect(self.new_project)
         open_project.triggered.connect(self.open_project)
         save_project.triggered.connect(self.save_project)
-
-    def change_document(self, path):
-        """Load document content into editor"""
-        if path and path in self.project.documents:
-            try:
-                content = self.project.get_document(path)
-                self.editor_widget.set_content(content)
-                self.project.current_file = path
-            except Exception as e:
-                print(f"Error changing document: {e}")
 
     def save_markdown(self):
         """Update current document in project"""
@@ -264,23 +272,14 @@ class MainWindow(QMainWindow):
         )
         if file_name:
             try:
-                # Load project first
                 self.project.load_project(file_name)
-                
-                # Update UI after successful load
                 self.sidebar.update_tree(self.project.documents)
-                
-                # If there's a current file, switch to it
-                if self.project.current_file:
-                    self.change_document(self.project.current_file)
-                # If no current file but we have documents, switch to first one
-                elif self.project.documents:
+                # Open the first document if it exists; otherwise, create a new one.
+                if self.project.documents:
                     first_doc = next(iter(self.project.documents))
-                    self.change_document(first_doc)
-                # If no documents at all, create a new one
+                    self._save_current_document(lambda: self.change_document(first_doc))
                 else:
                     self.create_new_document()
-                    
                 return True
             except Exception as e:
                 print(f"Error loading project: {e}")
@@ -322,7 +321,7 @@ class MainWindow(QMainWindow):
                  self.project.save_project(self.project.project_path)
 
     def delete_document(self, doc_id):
-        if doc_id in self.project.documents:
+        if (doc_id in self.project.documents):
             self.project.remove_document(doc_id)
             self.sidebar.update_tree(self.project.documents)
             # Create new document if we deleted the last one

@@ -13,7 +13,7 @@ class StartupDialog(QDialog):
         
         # Welcome text
         welcome = QLabel("Welcome to DocuWeave")
-        welcome.setStyleSheet("font-size: 24px; margin-bottom: 20px;")
+        welcome.setStyleSheet("font-size: 16px; margin-bottom: 20px;")
         welcome.setAlignment(Qt.AlignCenter)
         layout.addWidget(welcome)
         
