@@ -1,0 +1,11 @@
+{
+    "major": 1,
+    "minor": 0,
+    "patch": 0,
+    "prerelease": "alpha",
+    "build": 1,
+    "name": "DocuWeave",
+    "description": "Modern WYSIWYG Markdown Editor",
+    "author": "Çağlayan Karagözler",
+    "copyright": "2025"
+}

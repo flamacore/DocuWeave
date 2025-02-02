@@ -1,4 +1,5 @@
 import os  # Added import for os
+import sys  # Added import for sys.exit
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QFrame, QHBoxLayout, QMenu, QSplitter, QLabel, QApplication, QMenuBar
 from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtGui import QFont, QCursor
@@ -9,6 +10,7 @@ from core.project import Project
 from .editor_widget import EditorWidget
 from .toolbar_widget import ToolbarWidget
 from .project_sidebar import ProjectSidebar
+from .startup_dialog import StartupDialog  # Add this import
 import colorama
 colorama.init(autoreset=True)
 
@@ -51,13 +53,22 @@ class MainWindow(QMainWindow):
         style_path = os.path.join(os.path.dirname(__file__), 'dark_theme.qss')
         with open(style_path, 'r') as f:
             self.setStyleSheet(f.read())
-            
+        
+        # Initialize core components
         self.editor = Editor()
         self.renderer = Renderer()
         self.project = Project()
+        self.menu = None
+        
+        # Initialize UI first
         self.init_ui()
-        self.create_new_document()  # Create initial document
-        self.menu = None  # Add this line to store the menu
+        
+        # Then handle project selection
+        if not self.show_startup_dialog():
+            sys.exit(0)
+            
+        # Finally create initial document
+        self.create_new_document()
 
     def create_title_bar(self):
         """Create custom title bar"""
@@ -148,8 +159,8 @@ class MainWindow(QMainWindow):
         container_layout = QVBoxLayout(container)
         container_layout.setContentsMargins(0,0,0,0)
         
-        # Create editor widget
-        self.editor_widget = EditorWidget(self.renderer, parent=container)
+        # Create editor widget with project reference
+        self.editor_widget = EditorWidget(self.renderer, self.project, parent=container)
         # Create toolbar widget
         toolbar = ToolbarWidget(self.editor_widget, parent=container)
 
@@ -214,10 +225,13 @@ class MainWindow(QMainWindow):
 
     def change_document(self, path):
         """Load document content into editor"""
-        if path in self.project.documents:
-            content = self.project.get_document(path)
-            self.editor_widget.set_content(content)
-            self.project.current_file = path
+        if path and path in self.project.documents:
+            try:
+                content = self.project.get_document(path)
+                self.editor_widget.set_content(content)
+                self.project.current_file = path
+            except Exception as e:
+                print(f"Error changing document: {e}")
 
     def save_markdown(self):
         """Update current document in project"""
@@ -249,10 +263,29 @@ class MainWindow(QMainWindow):
             options=options
         )
         if file_name:
-            self.project.load_project(file_name)
-            self.sidebar.update_tree(self.project.documents)
-            if self.project.current_file:
-                self.change_document(self.project.current_file)
+            try:
+                # Load project first
+                self.project.load_project(file_name)
+                
+                # Update UI after successful load
+                self.sidebar.update_tree(self.project.documents)
+                
+                # If there's a current file, switch to it
+                if self.project.current_file:
+                    self.change_document(self.project.current_file)
+                # If no current file but we have documents, switch to first one
+                elif self.project.documents:
+                    first_doc = next(iter(self.project.documents))
+                    self.change_document(first_doc)
+                # If no documents at all, create a new one
+                else:
+                    self.create_new_document()
+                    
+                return True
+            except Exception as e:
+                print(f"Error loading project: {e}")
+                return False
+        return False
 
     def save_project(self):
         if not self.project.project_path:
@@ -326,11 +359,15 @@ class MainWindow(QMainWindow):
 
     def mouseMoveEvent(self, event):
         pos = event.pos()
-        # Change cursor if near resize border
+        # Update cursor based on position
         if pos.x() >= self.width() - self._margin and pos.y() >= self.height() - self._margin:
-            self.setCursor(QCursor(Qt.SizeFDiagCursor))
+            self.setCursor(Qt.SizeFDiagCursor)
+        elif pos.x() >= self.width() - self._margin:
+            self.setCursor(Qt.SizeHorCursor)
+        elif pos.y() >= self.height() - self._margin:
+            self.setCursor(Qt.SizeVerCursor)
         else:
-            self.setCursor(QCursor(Qt.ArrowCursor))
+            self.setCursor(Qt.ArrowCursor)
             
         if self._resizing:
             diff = event.globalPos() - self._resize_start_pos
@@ -355,3 +392,35 @@ class MainWindow(QMainWindow):
             self.showNormal()
         else:
             self.showMaximized()
+
+    def show_startup_dialog(self):
+        """Show startup dialog and handle project creation/opening"""
+        dialog = StartupDialog(self)
+        result = dialog.exec_()
+        
+        if result == StartupDialog.Accepted:
+            if dialog.action == "new":
+                return self.create_new_project_with_save()
+            elif dialog.action == "open":
+                return self.open_project()
+        return False
+
+    def create_new_project_with_save(self):
+        """Create new project and immediately prompt for save location"""
+        self.project = Project()
+        self.project.name = "Untitled Project"
+        
+        options = QFileDialog.Options()
+        file_name, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Project",
+            "",
+            "DocuWeave Project (*.dwproj);;All Files (*)",
+            options=options
+        )
+        
+        if file_name:
+            self.project.project_path = file_name
+            self.project.save_project(file_name)
+            return True
+        return False

@@ -187,3 +187,98 @@ QMenu::item {
 QMenu::item:selected {
     background-color: #3d3d3d;
 }
+
+/* WebView Context Menu */
+QWebEngineView QMenu {
+    background-color: #2e2e2e;
+    border: 1px solid #555;
+    color: white;
+    border-radius: 10px;
+}
+
+QWebEngineView QMenu::item {
+    padding: 5px 25px 5px 20px;
+    border-radius: 5px;
+}
+
+QWebEngineView QMenu::item:selected {
+    background-color: #3e3e3e;
+    border-radius: 5px;
+}
+
+/* Image Dialog */
+QDialog#imageDialog {
+    background-color: #2e2e2e;
+    color: white;
+    border-radius: 10px;
+    border: 1px solid #555;
+}
+
+QDialog#imageDialog QLineEdit {
+    background-color: #3e3e3e;
+    color: white;
+    border: 1px solid #555;
+    padding: 8px;
+    border-radius: 5px;
+    selection-background-color: #094771;
+}
+
+QDialog#imageDialog QPushButton {
+    background-color: #3e3e3e;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 5px;
+    min-width: 100px;
+}
+
+QDialog#imageDialog QPushButton:hover {
+    background-color: #4e4e4e;
+}
+
+QDialog#imageDialog QRadioButton {
+    color: white;
+    spacing: 8px;
+}
+
+QDialog#imageDialog QRadioButton::indicator {
+    width: 18px;
+    height: 18px;
+}
+
+QDialog#imageDialog QWidget {
+    background-color: #2e2e2e;
+}
+
+/* Dialog Title Bar */
+QDialog {
+    border: 1px solid #555;
+}
+
+QDialog::title {
+    background-color: #1e1e1e;
+    color: white;
+}
+
+/* Startup Dialog */
+QDialog#startupDialog {
+    background-color: #2e2e2e;
+    color: white;
+    border: 1px solid #555;
+}
+
+QDialog#startupDialog QPushButton {
+    font-size: 16px;
+    padding: 10px;
+    margin: 5px 20px;
+    background-color: #3e3e3e;
+}
+
+QDialog#startupDialog QPushButton:hover {
+    background-color: #4e4e4e;
+}
+
+QDialog#startupDialog QLabel {
+    color: white;
+    font-weight: bold;
+}

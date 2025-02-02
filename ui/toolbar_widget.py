@@ -1,5 +1,6 @@
-
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QPushButton
+from PyQt5.QtWidgets import QFrame, QHBoxLayout, QPushButton, QFileDialog
+from PyQt5.QtCore import Qt
+from ui.image_dialog import ImageDialog
 
 class ToolbarWidget(QFrame):
     def __init__(self, editor_widget, parent=None):
@@ -63,5 +64,27 @@ class ToolbarWidget(QFrame):
         numbered_list_button.clicked.connect(lambda: self.editor_widget.format_text('insertOrderedList'))
         layout.addWidget(numbered_list_button)
 
+        # Add image button
+        # image_button = QPushButton("🖼️")
+        # image_button.setToolTip("Insert Image")
+        # image_button.clicked.connect(self.show_image_dialog)
+        # layout.addWidget(image_button)
+
         layout.addStretch()
         self.setStyleSheet("background-color: #1e1e1e;")
+
+    def show_image_dialog(self):
+        dialog = ImageDialog(self)
+        if dialog.exec_():
+            if dialog.mode == "file":
+                # Handle file upload
+                file_path = dialog.file_path
+                if file_path:
+                    # Generate unique name and copy to project
+                    img_path = self.editor_widget.add_image_to_project(file_path)
+                    self.editor_widget.insert_image(img_path)
+            else:
+                # Handle URL
+                url = dialog.url
+                if url:
+                    self.editor_widget.insert_image(url)
