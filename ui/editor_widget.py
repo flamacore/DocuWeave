@@ -177,55 +177,50 @@ h3{{font-size:1.7em}}
     def format_text(self, command, value=None):
         # Log the applied formatting
         print("\033[94mApplying command: {} {}\033[0m".format(command, value if value else ""))
-
-        js = """
-        (function(){
+        
+        js = f"""
+        (function(){{
+            var ed = document.getElementById('editor');
             var sel = window.getSelection();
-            if(!sel.toString()){
-                var node = sel.focusNode;
-                if(node){
-                    if(node.nodeType === Node.TEXT_NODE){
-                        node = node.parentNode;
-                    }
-                    var range = document.createRange();
-                    range.selectNodeContents(node);
-                    sel.removeAllRanges();
-                    sel.addRange(range);
-                }
-            }
-            var ed = document.getElementById('editor'); ed.focus();
-
-            // Helper: unwrap headings or lists from the current selection
-            function unwrapTag(node){
-                while(node && node !== ed){
-                    var tag = (node.tagName || "").toUpperCase();
-                    if(tag === "LI"){
-                        // Move LI contents outside
-                        var parent = node.parentNode;
-                        while(node.firstChild){
-                            parent.parentNode.insertBefore(node.firstChild, parent);
-                        }
-                        parent.removeChild(node);
-                    } else if(tag === "UL" || tag === "OL" || tag === "H1" || tag === "H2" || tag === "H3"){
-                        while(node.firstChild){
-                            node.parentNode.insertBefore(node.firstChild, node);
-                        }
-                        node.parentNode.removeChild(node);
-                    }
+            function getHeading(node){{
+                while(node && node !== ed){{
+                    if(node.nodeName.match(/^H[1-6]$/)) return node;
                     node = node.parentNode;
-                }
-            }
-
-            if(sel.focusNode){
-                unwrapTag(sel.focusNode);
-            }
-        """.rstrip("\n")
-        if value:
-            js += "document.execCommand('{}', false, '{}');".format(command, value)
-        else:
-            js += "document.execCommand('{}');".format(command)
-        js += """
-        })();
+                }}
+                return null;
+            }}
+            function inList(node){{
+                while(node && node !== ed){{
+                    if(node.nodeName.match(/^(LI|UL|OL)$/)) return true;
+                    node = node.parentNode;
+                }}
+                return false;
+            }}
+            var currentHeading = getHeading(sel.anchorNode);
+            var appliedCommand = "{command}";
+            var appliedValue = {f'"{value}"' if value is not None else 'null'};
+            
+            // Prevent heading if selection is within a list
+            if(appliedCommand === 'formatBlock' && appliedValue && appliedValue.match(/<H[1-6]>/i)){{
+                if(inList(sel.anchorNode)){{
+                    console.log("Cannot add heading inside a list");
+                    return;
+                }}
+                var tag = appliedValue.replace(/[<>]/g, '').toUpperCase();
+                if(currentHeading && currentHeading.nodeName === tag){{
+                    document.execCommand('formatBlock', false, '<P>');
+                    return;
+                }}
+            }}
+            else if(currentHeading && appliedCommand !== 'formatBlock'){{
+                document.execCommand('formatBlock', false, '<P>');
+            }}
+            ed.focus();
+            if(appliedValue)
+                document.execCommand(appliedCommand, false, appliedValue);
+            else
+                document.execCommand(appliedCommand, false, null);
+        }})();
         """
         self.web_view.page().runJavaScript(js)
 

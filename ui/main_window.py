@@ -63,12 +63,12 @@ class MainWindow(QMainWindow):
         # Initialize UI first
         self.init_ui()
         
-        # Then handle project selection
-        if not self.show_startup_dialog():
-            sys.exit(0)
-            
-        # Finally create initial document
-        self.create_new_document()
+        # Handle project selection; if canceled, continue with a new document.
+        self.show_startup_dialog()
+        
+        # Only create a new document if none already exist
+        if not self.project.documents:
+            self.create_new_document()
 
     def create_title_bar(self):
         """Create custom title bar"""
