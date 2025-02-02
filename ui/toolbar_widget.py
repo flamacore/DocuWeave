@@ -64,6 +64,10 @@ class ToolbarWidget(QFrame):
         numbered_list_button.clicked.connect(lambda: self.editor_widget.format_text('insertOrderedList'))
         layout.addWidget(numbered_list_button)
 
+        info_box_btn = QPushButton("Info Box")
+        info_box_btn.clicked.connect(self.editor_widget.insert_info_box)
+        layout.addWidget(info_box_btn)
+
         # Add image button
         # image_button = QPushButton("🖼️")
         # image_button.setToolTip("Insert Image")

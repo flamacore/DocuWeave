@@ -32,39 +32,9 @@ class EditorWidget(QWidget):
         settings.setAttribute(QWebEngineSettings.LocalStorageEnabled, True)
 
         # Revert HTML template to original: only editable content is present.
-        self.html_template = '''<!DOCTYPE html>
-<html>
-<head>
-    <script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
-    <style>
-body{{background-color:#1e1e1e;color:white;margin:0;padding:10px;font-family:sans-serif;font-size:20px}}
-#editor{{min-height:400px;outline:none;border-radius:20px;max-width:800px;margin:0 auto;background-color:#333333;padding:20px;}}
-    </style>
-    <script>
-        // New event listener for Enter and Tab keys
-        document.addEventListener("keydown", function(e) {{
-            if (e.key === "Enter" && !e.shiftKey) {{
-                e.preventDefault();
-                document.execCommand('insertParagraph', false);
-            }}
-            if (e.key === "Tab") {{
-                e.preventDefault();
-                if (e.shiftKey) {{
-                    document.execCommand("outdent");
-                }} else {{
-                    document.execCommand("indent");
-                }}
-            }}
-        }});
-        // ...existing JS code...
-    </script>
-</head>
-<body>
-    <div id="editor" contenteditable="true">
-        {content}
-    </div>
-</body>
-</html>'''
+        tmpl_path = os.path.join(os.path.dirname(__file__), "editor_template.html")
+        with open(tmpl_path, "r", encoding="utf-8") as f:
+            self.html_template = f.read()
         
         # Set default title and content
         self.current_title = "Untitled Document"
@@ -180,3 +150,7 @@ body{{background-color:#1e1e1e;color:white;margin:0;padding:10px;font-family:san
         );
         """
         self.web_view.page().runJavaScript(js)
+
+    def insert_info_box(self):
+        """Insert an editable info box into the document."""
+        self.web_view.page().runJavaScript("insertInfoBox();")
