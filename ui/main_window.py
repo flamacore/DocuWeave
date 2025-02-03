@@ -28,7 +28,8 @@ class CustomWebEngineView(QWebEngineView):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        # Set window flags for frameless window
+        
+        # Comment out the frameless + translucent settings
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         
@@ -162,8 +163,9 @@ class MainWindow(QMainWindow):
         self.editor_widget = EditorWidget(self.renderer, self.project, parent=container)
         # Create toolbar widget
         toolbar = ToolbarWidget(self.editor_widget, parent=container)
+        self.toolbar_widget = toolbar
 
-        container_layout.addWidget(toolbar)
+        container_layout.addWidget(self.toolbar_widget)
         container_layout.addWidget(self.editor_widget)
         
         # Control buttons below the container
@@ -260,33 +262,42 @@ class MainWindow(QMainWindow):
         self.project.name = "Untitled Project"
         self.sidebar.update_tree(self.project.documents)
         self.editor_widget.set_content("")
+        self.editor_widget.project = self.project
+        self.toolbar_widget.editor_widget = self.editor_widget
 
-    def open_project(self):
-        options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getOpenFileName(
-            self,
-            "Open Project",
-            "",
-            "DocuWeave Project (*.dwproj);;All Files (*)",
-            options=options
-        )
-        if file_name:
+    def open_project(self, file_path=None):
+        """Open a project from file path or show dialog to select one"""
+        if not file_path:
+            options = QFileDialog.Options()
+            file_path, _ = QFileDialog.getOpenFileName(
+                self,
+                "Open Project",
+                "",
+                "DocuWeave Project (*.dwproj);;All Files (*)",
+                options=options
+            )
+        
+        if file_path:
             try:
-                self.project.load_project(file_name)
+                self.project.load_project(file_path)
                 self.sidebar.update_tree(self.project.documents)
+                self.editor_widget.project = self.project
+                self.toolbar_widget.editor_widget = self.editor_widget
                 # Open the first document if it exists; otherwise, create a new one.
                 if self.project.documents:
                     first_doc = next(iter(self.project.documents))
                     self._save_current_document(lambda: self.change_document(first_doc))
                 else:
                     self.create_new_document()
+                self.editor_widget.project = self.project
                 return True
             except Exception as e:
                 print(f"Error loading project: {e}")
                 return False
         return False
 
-    def save_project(self):
+    def save_project(self, callback=None):
+        """Save project and execute callback when complete"""
         if not self.project.project_path:
             options = QFileDialog.Options()
             file_name, _ = QFileDialog.getSaveFileName(
@@ -297,16 +308,44 @@ class MainWindow(QMainWindow):
                 options=options
             )
             if not file_name:
-                return
+                print("\033[91mProject save cancelled by user\033[0m")
+                # Do not call callback so that downstream actions halt.
+                return False
+            
+            if not file_name.endswith('.dwproj'):
+                file_name += '.dwproj'
+            print(f"\033[94mSetting project path: {file_name}\033[0m")
             self.project.project_path = file_name
 
-        # Update current document content before saving
-        if self.project.current_file:
-            self.editor_widget.web_view.page().runJavaScript(
-                "document.getElementById('editor').innerHTML;",
-                lambda content: self._handle_document_save(content)
-            )
-        self.project.save_project(self.project.project_path)
+        try:
+            # Update current document content before saving
+            def after_content_save(content):
+                if self.project.current_file:
+                    self.project.update_document(self.project.current_file, content)
+                print(f"\033[94mBefore save_project, project_path: {self.project.project_path}\033[0m")
+                self.project.save_project(self.project.project_path)
+                print(f"\033[94mAfter save_project, project_path: {self.project.project_path}\033[0m")
+                # Make sure editor widget has current project reference
+                self.editor_widget.project = self.project
+                if callback:
+                    callback()
+
+            if self.project.current_file:
+                self.editor_widget.web_view.page().runJavaScript(
+                    "document.getElementById('editor').innerHTML;",
+                    after_content_save
+                )
+            else:
+                self.project.save_project(self.project.project_path)
+                if callback:
+                    callback()
+            return True
+            
+        except Exception as e:
+            print(f"\033[91mError saving project: {e}\033[0m")
+            if callback:
+                callback()
+            return False
 
     def _handle_document_save(self, content):
         if self.project.current_file:
@@ -399,27 +438,33 @@ class MainWindow(QMainWindow):
         
         if result == StartupDialog.Accepted:
             if dialog.action == "new":
-                return self.create_new_project_with_save()
+                if dialog.project_path:
+                    return self.create_new_project_at_path(dialog.project_path)
             elif dialog.action == "open":
-                return self.open_project()
+                if dialog.project_path:
+                    return self.open_project(dialog.project_path)
         return False
 
-    def create_new_project_with_save(self):
-        """Create new project and immediately prompt for save location"""
+    def create_new_project_at_path(self, folder_path):
+        """Create new project at specified location"""
         self.project = Project()
-        self.project.name = "Untitled Project"
+        self.project.name = os.path.basename(folder_path)
         
-        options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save Project",
-            "",
-            "DocuWeave Project (*.dwproj);;All Files (*)",
-            options=options
-        )
+        # Create project file path
+        project_file = os.path.join(folder_path, f"{self.project.name}.dwproj")
+        self.project.project_path = project_file
         
-        if file_name:
-            self.project.project_path = file_name
-            self.project.save_project(file_name)
-            return True
-        return False
+        # Update editor references before saving
+        self.editor_widget.project = self.project
+        self.toolbar_widget.editor_widget = self.editor_widget
+        
+        # Save the project immediately to create necessary folders
+        self.project.save_project(project_file)
+        print(f"\033[94mAfter create_new_project_at_path, project_path: {self.project.project_path}\033[0m")
+        
+        # Double-check project path is set
+        if not self.project.project_path:
+            print("\033[91mWarning: project_path not set after creation!\033[0m")
+            self.project.project_path = project_file
+            
+        return True

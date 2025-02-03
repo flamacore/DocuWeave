@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QPushButton, QFileDialog
+from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QPushButton, QFileDialog,
+                          QMessageBox, QMainWindow)
 from PyQt5.QtCore import Qt
 from ui.image_dialog import ImageDialog
 
@@ -69,26 +70,59 @@ class ToolbarWidget(QFrame):
         layout.addWidget(info_box_btn)
 
         # Add image button
-        # image_button = QPushButton("🖼️")
-        # image_button.setToolTip("Insert Image")
-        # image_button.clicked.connect(self.show_image_dialog)
-        # layout.addWidget(image_button)
+        image_button = QPushButton("🖼️")
+        image_button.setToolTip("Insert Image")
+        image_button.clicked.connect(self.show_image_dialog)
+        layout.addWidget(image_button)
 
         layout.addStretch()
         self.setStyleSheet("background-color: #1e1e1e;")
 
+    def set_editor_widget(self, editor_widget):
+        self.editor_widget = editor_widget
+
     def show_image_dialog(self):
+        print(f"\033[94mChecking project path: {self.editor_widget.project.project_path}\033[0m")
+        
+        # Find MainWindow instance
+        main_window = None
+        widget = self
+        while widget and not isinstance(widget, QMainWindow):
+            widget = widget.parent()
+        main_window = widget
+        
+        if not self.editor_widget.project.project_path and main_window:
+            # Try saving the project first and wait for completion
+            def after_save():
+                print(f"\033[94mProject path after save: {self.editor_widget.project.project_path}\033[0m")
+                if not self.editor_widget.project.project_path:
+                    QMessageBox.warning(
+                        self,
+                        "No Project",
+                        "You must save the project before adding images.",
+                        QMessageBox.Ok
+                    )
+                    return
+                self._show_image_dialog_impl()
+
+            saved = main_window.save_project(after_save)
+            return
+        
+        self._show_image_dialog_impl()
+
+    def _show_image_dialog_impl(self):
+        """Internal method to show the image dialog after project path is confirmed"""
+        print("\033[92mOpening image dialog...\033[0m")
         dialog = ImageDialog(self)
+        dialog.setWindowModality(Qt.ApplicationModal)
         if dialog.exec_():
             if dialog.mode == "file":
-                # Handle file upload
                 file_path = dialog.file_path
                 if file_path:
-                    # Generate unique name and copy to project
                     img_path = self.editor_widget.add_image_to_project(file_path)
-                    self.editor_widget.insert_image(img_path)
+                    if img_path:
+                        self.editor_widget.insert_image(img_path)
             else:
-                # Handle URL
                 url = dialog.url
                 if url:
                     self.editor_widget.insert_image(url)

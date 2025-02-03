@@ -1,2 +1,1 @@
-
-# empty file so that "core" is recognized as a Python package
+# This file ensures the 'core' directory is treated as a package.

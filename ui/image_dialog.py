@@ -9,7 +9,8 @@ class ImageDialog(QDialog):
         self.setObjectName("imageDialog")  # Set object name for QSS styling
         self.setWindowTitle("Insert Image")
         self.setFixedSize(600, 300)  # Increased size
-        self.setWindowFlags(Qt.FramelessWindowHint)  # Borderless window
+        # Change window flags to standard dialog flags instead of frameless
+        self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint)
         self.mode = "file"  # Default mode
         self.file_path = ""
         self.url = ""

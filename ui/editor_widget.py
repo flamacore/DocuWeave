@@ -3,7 +3,7 @@ import shutil
 import uuid
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QWidget
-from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal, Qt, QUrl  # added QUrl import
 from PyQt5.QtWebChannel import QWebChannel
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineView
 from ui.custom_webview import CustomWebEngineView
@@ -104,12 +104,23 @@ class EditorWidget(QWidget):
         """
         self.web_view.page().runJavaScript(js)
 
-    def set_content(self, markdown_text: str):
+    def set_content(self, text: str):
         import html
-        rendered = self.renderer.render(markdown_text)
-        # Unescape HTML entities to prevent double-escaping
-        unescaped = html.unescape(rendered)
-        self.web_view.setHtml(self.html_template.format(content=unescaped))
+        if text.lstrip().startswith('<'):
+            content_html = text
+        else:
+            rendered = self.renderer.render(text)
+            content_html = html.unescape(rendered)
+        if "{content}" in self.html_template:
+            final_html = self.html_template.format(content=content_html)
+        else:
+            final_html = content_html
+        if self.project.project_path:
+            project_folder = os.path.splitext(self.project.project_path)[0]
+            base_url = QUrl.fromLocalFile(project_folder + os.sep)
+        else:
+            base_url = QUrl()
+        self.web_view.setHtml(final_html, base_url)
 
     def set_document_title(self, title: str):
         # Title no longer shown; no action needed.
@@ -122,34 +133,50 @@ class EditorWidget(QWidget):
 
     def add_image_to_project(self, file_path):
         """Copy image to project's image directory and return relative path"""
-        # Create images directory in current directory if no project path exists
-        if self.project.project_path:
-            base_dir = os.path.dirname(self.project.project_path)
-        else:
-            base_dir = os.getcwd()
-            
-        img_dir = os.path.join(base_dir, 'images')
-        os.makedirs(img_dir, exist_ok=True)
-        
-        # Generate unique filename
-        ext = os.path.splitext(file_path)[1]
-        new_name = f"{uuid.uuid4()}{ext}"
-        new_path = os.path.join(img_dir, new_name)
-        
-        # Copy file
-        shutil.copy2(file_path, new_path)
-        
-        # Return relative path
-        return f"images/{new_name}"
+        try:
+            if self.project.project_path:
+                # Get the project folder (where documents are stored)
+                project_folder = os.path.splitext(self.project.project_path)[0]
+                print(f"\033[94mProject folder path: {project_folder}\033[0m")
+                
+                # Create images subfolder within the project documents folder
+                img_dir = os.path.join(project_folder, 'images')
+                print(f"\033[94mCreating image directory at: {img_dir}\033[0m")
+                os.makedirs(img_dir, exist_ok=True)
+                
+                # Generate unique filename and copy
+                ext = os.path.splitext(file_path)[1]
+                new_name = f"{uuid.uuid4()}{ext}"
+                new_path = os.path.join(img_dir, new_name)
+                print(f"\033[94mCopying image from {file_path} to {new_path}\033[0m")
+                shutil.copy2(file_path, new_path)
+                
+                # Generate and log the relative path - use forward slashes for web URLs
+                rel_path = f"images/{new_name}"  # Always use forward slashes for web paths
+                print(f"\033[92mReturning relative image path: {rel_path}\033[0m")
+                return rel_path
+            else:
+                print("\033[91mNo project path set - cannot add image to project\033[0m")
+                return None
+                
+        except Exception as e:
+            print(f"\033[91mError adding image to project: {str(e)}\033[0m")
+            return None
 
     def insert_image(self, src):
         """Insert image at current cursor position"""
-        js = f"""
-        document.execCommand('insertHTML', false, 
-            '<img src="{src}" alt="Inserted image" style="max-width: 100%; height: auto;">'
-        );
-        """
-        self.web_view.page().runJavaScript(js)
+        if src:
+            # Ensure forward slashes in the src path
+            src = src.replace('\\', '/')
+            print(f"\033[94mInserting image with src: {src}\033[0m")
+            js = f"""
+            document.execCommand('insertHTML', false, 
+                '<div class="draggable-image" contenteditable="false"><img src="{src}" alt="Inserted image" style="max-width: 100%; height: auto;"/></div>'
+            );
+            """
+            self.web_view.page().runJavaScript(js)
+        else:
+            print("\033[91mAttempted to insert image with empty src\033[0m")
 
     def insert_info_box(self):
         """Insert an editable info box into the document."""

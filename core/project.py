@@ -35,6 +35,7 @@ class Project:
 
     def save_project(self, filepath: str) -> None:
         self.project_path = filepath
+        print(f"\033[94mSaving project to {filepath}\033[0m")
         project_dir = os.path.splitext(filepath)[0]  # Remove .dwproj extension
         os.makedirs(project_dir, exist_ok=True)
 

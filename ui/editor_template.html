@@ -51,6 +51,15 @@
             color: #888;
         }}
         p {{ margin: 1em 0; }}
+        /* New styles for image handling */
+        .draggable-image {{
+            display: inline-block;
+            position: relative;
+            cursor: move;
+        }}
+        .draggable-image.selected {{
+            outline: 2px solid #0099ff;
+        }}
     </style>
     <script>
         function insertInfoBox() {{
@@ -89,6 +98,7 @@
         }});
         // ...existing JS code...
     </script>
+    <script src="editor_script.js"></script>
 </head>
 <body>
     <div id="editor" contenteditable="true">
