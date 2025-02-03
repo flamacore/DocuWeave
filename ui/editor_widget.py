@@ -164,14 +164,12 @@ class EditorWidget(QWidget):
             return None
 
     def insert_image(self, src):
-        """Insert image at current cursor position"""
+        """Insert image at current cursor position as scalable proportionally"""
         if src:
-            # Ensure forward slashes in the src path
             src = src.replace('\\', '/')
-            print(f"\033[94mInserting image with src: {src}\033[0m")
             js = f"""
             document.execCommand('insertHTML', false, 
-                '<div class="draggable-image" contenteditable="false"><img src="{src}" alt="Inserted image" style="max-width: 100%; height: auto;"/></div>'
+                '<div class="scalable-image" contenteditable="false" style="display: inline-block; resize: horizontal; overflow: auto; border: 1px solid #ccc; margin: 5px; width:300px;"><img src="{src}" alt="Inserted image" style="display: block; width: 100%; height: auto;"/></div>'
             );
             """
             self.web_view.page().runJavaScript(js)
