@@ -1,91 +1,49 @@
-# This is a VERY EARLY PROTOTYPE. Don't use it. Not ready for anything yet.
+# DocuWeave
 
-# DocuWeave - Modern Markdown Editor
-
-## Overview
-DocuWeave is a modern, WYSIWYG Markdown editor built with Python and PyQt5. It provides a sleek dark-themed interface that lets you edit and preview markdown content in real-time, with an intuitive formatting toolbar.
+DocuWeave is a lightweight WYSIWYG markdown editor with project management and dynamic theming.
 
 ## Features
-- Modern dark-themed UI with rounded corners
-- Real-time WYSIWYG markdown editing
-- Intuitive formatting toolbar with:
-  - Headings (H1, H2, H3)
-  - Text styling (Bold, Italic, Underline, Strikethrough)
-  - Lists (Bullet and Numbered)
-  - Blockquotes
-- Smart format handling (prevents nested headings/lists)
-- Tab indentation support
-- Save as markdown files
-- Customizable themes using QSS:
-  - Easily modify the default dark theme or create new ones
-  - Real-time theme updates using standard Qt Style Sheet syntax
 
-## Project Structure
-```
-DocuWeave
-├── app.py              # Application entry point
-├── ui/                 # User interface components
-│   ├── main_window.py  # Main application window
-│   ├── editor_widget.py # WYSIWYG editor component
-│   ├── toolbar_widget.py # Formatting toolbar
-│   ├── project_sidebar.py # Project sidebar
-│   ├── custom_webview.py # Custom web view for editor
-│   ├── js_bridge.py    # JavaScript bridge for editor
-│   └── dark_theme.qss  # Default dark theme
-├── core/               # Core functionality
-│   ├── editor.py       # Editor operations
-│   ├── renderer.py     # Markdown rendering
-│   ├── project.py      # Project management
-│   └── controller.py   # Controller for editor and renderer
-├── requirements.txt    # Project dependencies
-└── README.md           # Project documentation
-```
+- **Markdown Rendering**: Converts markdown to HTML via a custom `Renderer`.
+- **WYSIWYG Editor**: Editable content is managed by `EditorWidget`, which supports images, info boxes, and live content updates.
+- **Dynamic Theming**: 
+  - Theme variables are defined in `dark_theme.qss` and injected into the HTML template.
+  - CSS variables for colors, fonts, spacing, etc. enable easy customization.
+- **Project Management**: Supports project creation, saving, and loading with file management via a sidebar.
+- **Custom Window Frame**: Modern frameless, translucent UI with a custom title bar and context menus.
 
-## Installation
-1. Clone the repository:
-   ```
-   git clone https://github.com/yourusername/DocuWeave.git
-   ```
-2. Navigate to the project directory:
-   ```
-   cd DocuWeave
-   ```
-3. Install required dependencies:
+## Repository Structure
+
+- **/core/**
+  - `renderer.py`: Renders markdown to HTML and extracts CSS theme variables.
+  - `project.py`: Manages project files and document storage.
+- **/ui/**
+  - `editor_widget.py`: Contains the WYSIWYG editor implementation.
+  - `editor_template.html`: HTML template with placeholders for content and theme variables.
+  - `toolbar_widget.py`: Contains SVG icon utilities (including optional stroke).
+  - `main_window.py`: Manages the overall window layout and custom title bar.
+  - Other UI components (custom_webview, project_sidebar, startup_dialog, etc.).
+- **/resources/**
+  - Includes SVG files for toolbar icons and the app icon.
+
+## Setup & Running
+
+1. Install dependencies (e.g., PyQt5 and markdown).
    ```
    pip install -r requirements.txt
    ```
+2. Run the main application:
+   ```
+   python app.py
+   ```
+3. Enjoy the live preview in the editor.
 
-## Usage
-Run the application:
-```
-python app.py
-```
+## Recent Updates
 
-## Customization
-### Themes
-DocuWeave uses Qt Style Sheets (QSS) for theming, making it simple to change the look and feel:
-- Copy and modify the default `dark_theme.qss` to create your own theme.
-- Adjust properties like colors, borders, and fonts using standard QSS syntax.
-- Load your custom theme file in place of the default one for a personalized experience.
+- **SVG Icon Stroke**: Added support for an optional stroke in SVG icons for improved visual appearance.
+- **Enhanced Theming**: Dynamic injection of CSS variables from QSS and proper escaping for Python string formatting.
+- **Toolbar Improvements**: Added more icons and improved the toolbar layout.
 
-Example snippet:
-```qss
-/* Custom theme example */
-QMainWindow {
-    background-color: #2e2e2e;
-    color: white;
-}
+_For more details, refer to the inline comments in the source files._
 
-#titleBar {
-    background-color: #1e1e1e;
-    min-height: 50px;
-}
-```
-
-## Contributing
-Contributions are welcome! Feel free to submit issues and pull requests.
-
-## License
-This project is licensed under the MIT License.
-
-Uicons by <a href="https://www.flaticon.com/uicons">Flaticon</a>
+Happy editing!

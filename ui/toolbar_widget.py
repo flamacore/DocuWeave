@@ -31,7 +31,7 @@ class ToolbarButton(QPushButton):
         self.setStyleSheet(self.hover_style)
         super().mouseReleaseEvent(event)
 
-def getColoredIcon(file_path, color=None, size=QSize(32,32)):
+def getColoredIcon(file_path, color=None, size=QSize(32,32), stroke_color=None, stroke_width=2):
     if color is None:
         color = QColor("white")
     renderer = QSvgRenderer(file_path)
@@ -42,6 +42,27 @@ def getColoredIcon(file_path, color=None, size=QSize(32,32)):
     painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
     painter.fillRect(pixmap.rect(), color)
     painter.end()
+    
+    # Add stroke if requested
+    if stroke_color and stroke_width > 0:
+        new_size = QSize(size.width() + stroke_width * 2, size.height() + stroke_width * 2)
+        stroked_pixmap = QPixmap(new_size)
+        stroked_pixmap.fill(Qt.transparent)
+        painter = QPainter(stroked_pixmap)
+        # Offsets to simulate stroke around the icon
+        offsets = [(-stroke_width, 0), (stroke_width, 0), (0, -stroke_width), (0, stroke_width),
+                   (-stroke_width, -stroke_width), (stroke_width, -stroke_width),
+                   (-stroke_width, stroke_width), (stroke_width, stroke_width)]
+        for dx, dy in offsets:
+            painter.drawPixmap(dx + stroke_width, dy + stroke_width, pixmap)
+        painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
+        painter.fillRect(stroked_pixmap.rect(), stroke_color)
+        painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
+        # Draw original icon in the center
+        painter.drawPixmap(stroke_width, stroke_width, pixmap)
+        painter.end()
+        pixmap = stroked_pixmap
+
     return QIcon(pixmap)
 
 def getFlippedIcon(file_path, color=None, size=QSize(32,32)):
