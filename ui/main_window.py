@@ -1,8 +1,8 @@
 import os  # Added import for os
 import sys  # Added import for sys.exit
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QFrame, QHBoxLayout, QMenu, QSplitter, QLabel, QApplication, QMenuBar
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QFrame, QHBoxLayout, QMenu, QSplitter, QLabel, QApplication, QMenuBar, QShortcut
 from PyQt5.QtCore import Qt, QPoint
-from PyQt5.QtGui import QFont, QCursor
+from PyQt5.QtGui import QFont, QCursor, QKeySequence  # Remove QShortcut from here
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from core.editor import Editor
 from core.renderer import Renderer
@@ -63,6 +63,13 @@ class MainWindow(QMainWindow):
         
         # Initialize UI first
         self.init_ui()
+        
+        # Add shortcuts for saving (Ctrl+S) and opening projects (Ctrl+O)
+        self.shortcut_save = QShortcut(QKeySequence("Ctrl+S"), self)
+        self.shortcut_save.activated.connect(lambda: self.save_project())
+        
+        self.shortcut_open = QShortcut(QKeySequence("Ctrl+O"), self)
+        self.shortcut_open.activated.connect(lambda: self.open_project())
         
         # Handle project selection; if canceled, continue with a new document.
         self.show_startup_dialog()
@@ -236,12 +243,16 @@ class MainWindow(QMainWindow):
         new_doc.triggered.connect(self.create_new_document)
         
         new_project = file_menu.addAction('New Project')
-        open_project = file_menu.addAction('Open Project')
-        save_project = file_menu.addAction('Save Project')
-        
         new_project.triggered.connect(self.new_project)
+        
+        open_project = file_menu.addAction('Open Project')
+        open_project.setShortcut('Ctrl+O')
         open_project.triggered.connect(self.open_project)
+        
+        save_project = file_menu.addAction('Save Project')
+        save_project.setShortcut('Ctrl+S')
         save_project.triggered.connect(self.save_project)
+        # ...existing code...
 
     def save_markdown(self):
         """Update current document in project"""
