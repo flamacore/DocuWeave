@@ -282,3 +282,36 @@ QDialog#startupDialog QLabel {
     color: white;
     font-weight: bold;
 }
+
+/* Vertical separator style */
+QFrame[frameShape="VLine"] {
+    background-color: white;
+    width: 2px;
+}
+
+/* THEME_VARIABLES_START */
+:root {
+    --body-bg: #1e1e1e;
+    --body-color: white;
+    --body-padding: 10px;
+    --body-font-family: sans-serif;
+    --body-font-size: 20px;
+    
+    --editor-border-radius: 20px;
+    --editor-max-width: 800px;
+    --editor-margin: 0 auto;
+    --editor-bg: #333333;
+    --editor-padding: 20px;
+    
+    --info-box-border: 1px solid #3e3e3e;
+    --info-box-bg: #2e2e2e;
+    --info-box-padding: 10px;
+    --info-box-margin: 10px 0;
+    --info-box-border-radius: 5px;
+    --info-box-header-border-bottom: 1px solid #3e3e3e;
+    --info-box-header-padding-bottom: 5px;
+    --info-box-header-margin-bottom: 5px;
+    
+    // Add additional variables here for every property used in editor_template.html
+}
+/* THEME_VARIABLES_END */

@@ -5,65 +5,27 @@
     <!-- Link to Font Awesome Free -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        body {{ background-color:#1e1e1e; color:white; margin:0; padding:10px; font-family:sans-serif; font-size:20px; }}
-        #editor {{ min-height:400px; outline:none; border-radius:20px; max-width:800px; margin:0 auto; background-color:#333333; padding:20px; }}
-        .info-box {{ border: 1px solid #3e3e3e; background: #2e2e2e; padding: 10px; margin:10px 0; border-radius:5px; }}
-        .info-box-header {{
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid #3e3e3e;
-            padding-bottom: 5px;
-            margin-bottom: 5px;
+        :root {{
+            {theme_vars}
         }}
-        /* Static section: non‑editable parts */
-        .info-box-static * {{
-            pointer-events: none;
-            user-select: none;
-        }}
-        .info-box-title input {{
-            background: transparent;
-            border: none;
-            color: #cccccc;
-            outline: none;
-            font-size: inherit;
-            pointer-events: auto;
-        }}
-        .info-box-icon {{
-            margin-right: 10px;
-        }}
-        .info-box-remove {{
-            margin-left: 10px;
-        }}
-        .remove-btn {{
-            background: transparent;
-            border: none;
-            color: #999;
-            cursor: pointer;
-            display: none;
-            pointer-events: auto;
-        }}
+        body {{ background-color: var(--body-bg); color: var(--body-color); margin: 0; padding: var(--body-padding); font-family: var(--body-font-family); font-size: var(--body-font-size); }}
+        #editor {{ min-height: 400px; outline: none; border-radius: var(--editor-border-radius); max-width: var(--editor-max-width); margin: var(--editor-margin); background-color: var(--editor-bg); padding: var(--editor-padding); }}
+        .info-box {{ border: var(--info-box-border); background: var(--info-box-bg); padding: var(--info-box-padding); margin: var(--info-box-margin); border-radius: var(--info-box-border-radius); }}
+        .info-box-header {{ display: flex; align-items: center; border-bottom: var(--info-box-header-border-bottom); padding-bottom: var(--info-box-header-padding-bottom); margin-bottom: var(--info-box-header-margin-bottom); }}
+        /* For all other classes, replace literal values with CSS variables as appropriate */
+        .info-box-icon {{ margin-right: 10px; }}  /* If numeric, consider adding a variable if needed */
+        .remove-btn {{ background: transparent; border: none; color: var(--body-color); cursor: pointer; display: none; }}
         .info-box:hover .remove-btn {{ display: block; }}
-        .info-box-content {{
-            min-height:30px;
-        }}
-        .info-box-content:empty:before {{
-            content: attr(data-placeholder);
-            color: #888;
-        }}
+        .info-box-content {{ min-height: 30px; }}
+        .info-box-content:empty:before {{ content: attr(data-placeholder); color: #888; }}  /* Replace with a variable if desired */
         p {{ margin: 1em 0; }}
-        /* New styles for image handling */
-        .draggable-image {{
-            display: inline-block;
-            position: relative;
-            cursor: move;
-        }}
-        .draggable-image.selected {{
-            outline: 2px solid #0099ff;
-        }}
+        .draggable-image {{ display: inline-block; position: relative; cursor: move; }}
+        .draggable-image.selected {{ outline: 2px solid #0099ff; }}  /* Replace with var(--some-variable) if needed */
     </style>
     <script>
         function insertInfoBox() {{
             var infoBoxHTML = `
+            <br>
             <div class="info-box">
               <div class="info-box-header" contenteditable="false">
                 <div class="info-box-icon" style="pointer-events:none; user-select:none;">
@@ -72,10 +34,6 @@
                 <div class="info-box-remove" style="pointer-events:none; user-select:none;">
                   <button class="remove-btn" tabindex="-1" onclick="this.closest('.info-box').remove()" style="pointer-events:auto;">x</button>
                 </div>
-              </div>
-              <div class="info-box-title" contenteditable="true">
-                <input type="text" value="Info" contenteditable="true" 
-                       onkeydown="if(event.key==='Enter'){{ event.preventDefault(); }}" />
               </div>
               <div class="info-box-content" contenteditable="true" data-placeholder="Your content here..."></div>
             </div>

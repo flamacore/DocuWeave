@@ -16,7 +16,7 @@ class EditorWidget(QWidget):
         super().__init__(parent)
         self.renderer = renderer
         self.project = project  # Store project reference
-        self.setStyleSheet("background-color: #1e1e1e;")
+        self.setStyleSheet("background-color: var(--body-bg);")  # Now uses theme variable if needed
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
         self.web_view = QWebEngineView()
@@ -39,7 +39,10 @@ class EditorWidget(QWidget):
         # Set default title and content
         self.current_title = "Untitled Document"
         initial_content = self.renderer.render("")
-        self.web_view.setHtml(self.html_template.format(content=initial_content))
+        # Get theme variables from qss via renderer helper
+        theme_vars = self.renderer.get_theme_variables()
+        html = self.html_template.format(content=initial_content, theme_vars=theme_vars)
+        self.web_view.setHtml(html, QUrl("qrc:///"))
 
         # Initialize JavaScript bridge
         self.js_bridge = JavaScriptBridge()
@@ -111,10 +114,12 @@ class EditorWidget(QWidget):
         else:
             rendered = self.renderer.render(text)
             content_html = html.unescape(rendered)
-        if "{content}" in self.html_template:
-            final_html = self.html_template.format(content=content_html)
+        # Check if the template expects both placeholders
+        if "{theme_vars}" in self.html_template:
+            theme_vars = self.renderer.get_theme_variables()
+            final_html = self.html_template.format(content=content_html, theme_vars=theme_vars)
         else:
-            final_html = content_html
+            final_html = self.html_template.format(content=content_html)
         if self.project.project_path:
             project_folder = os.path.splitext(self.project.project_path)[0]
             base_url = QUrl.fromLocalFile(project_folder + os.sep)
