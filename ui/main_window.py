@@ -51,7 +51,7 @@ class MainWindow(QMainWindow):
         self.setGeometry(x, y, width, height)
         
         # Load and apply the stylesheet
-        style_path = os.path.join(os.path.dirname(__file__), 'dark_theme.qss')
+        style_path = os.path.join(os.path.dirname(__file__), "..", "resources", "dark_theme.qss")
         with open(style_path, 'r') as f:
             self.setStyleSheet(f.read())
         

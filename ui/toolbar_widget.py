@@ -1,8 +1,18 @@
+import sys
+import os
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QPushButton, QFileDialog, QMessageBox, QMainWindow
 from PyQt5.QtGui import QIcon, QPixmap, QPainter, QColor, QTransform
 from PyQt5.QtCore import Qt, QSize, QEvent
 from PyQt5.QtSvg import QSvgRenderer
 from ui.image_dialog import ImageDialog
+
+# Add helper to get resource path in bundle or during development
+def get_resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 # Add custom ToolbarButton for interactive hover and click effects
 class ToolbarButton(QPushButton):
@@ -80,13 +90,13 @@ class ToolbarWidget(QFrame):
         
         # Group 1: Undo/Redo at start
         undo_button = ToolbarButton()
-        undo_button.setIcon(getColoredIcon("resources/undo.svg"))  # Using colored icon
+        undo_button.setIcon(getColoredIcon(get_resource_path("resources/undo.svg")))  # Using colored icon
         undo_button.setToolTip("Undo")
         undo_button.clicked.connect(lambda: self.editor_widget.web_view.page().runJavaScript("document.execCommand('undo');"))
         layout.addWidget(undo_button)
         
         redo_button = ToolbarButton()
-        redo_button.setIcon(getFlippedIcon("resources/undo.svg"))  # Use flipped undo icon for redo
+        redo_button.setIcon(getFlippedIcon(get_resource_path("resources/undo.svg")))  # Use flipped undo icon for redo
         redo_button.setToolTip("Redo")
         redo_button.clicked.connect(lambda: self.editor_widget.web_view.page().runJavaScript("document.execCommand('redo');"))
         layout.addWidget(redo_button)
@@ -99,91 +109,91 @@ class ToolbarWidget(QFrame):
         
         # Group 2: Text formatting buttons (headings, bold, italic, underline, strike, quote, lists, alignments)
         h1_button = ToolbarButton()
-        h1_button.setIcon(getColoredIcon("resources/h1.svg"))
+        h1_button.setIcon(getColoredIcon(get_resource_path("resources/h1.svg")))
         h1_button.setToolTip("Heading 1")
         h1_button.clicked.connect(lambda: self.editor_widget.format_text('formatBlock', '<H1>'))
         layout.addWidget(h1_button)
         
         h2_button = ToolbarButton()
-        h2_button.setIcon(getColoredIcon("resources/h2.svg"))
+        h2_button.setIcon(getColoredIcon(get_resource_path("resources/h2.svg")))
         h2_button.setToolTip("Heading 2")
         h2_button.clicked.connect(lambda: self.editor_widget.format_text('formatBlock', '<H2>'))
         layout.addWidget(h2_button)
         
         h3_button = ToolbarButton()
-        h3_button.setIcon(getColoredIcon("resources/h3.svg"))
+        h3_button.setIcon(getColoredIcon(get_resource_path("resources/h3.svg")))
         h3_button.setToolTip("Heading 3")
         h3_button.clicked.connect(lambda: self.editor_widget.format_text('formatBlock', '<H3>'))
         layout.addWidget(h3_button)
         
         normal_button = ToolbarButton()
-        normal_button.setIcon(getColoredIcon("resources/normal.svg"))
+        normal_button.setIcon(getColoredIcon(get_resource_path("resources/normal.svg")))
         normal_button.setToolTip("Normal Text")
         normal_button.clicked.connect(lambda: self.editor_widget.format_text('formatBlock', '<P>'))
         layout.addWidget(normal_button)
         
         bold_button = ToolbarButton()
-        bold_button.setIcon(getColoredIcon("resources/bold.svg"))
+        bold_button.setIcon(getColoredIcon(get_resource_path("resources/bold.svg")))
         bold_button.setToolTip("Bold")
         bold_button.clicked.connect(lambda: self.editor_widget.format_text('bold'))
         layout.addWidget(bold_button)
         
         italic_button = ToolbarButton()
-        italic_button.setIcon(getColoredIcon("resources/italic.svg"))
+        italic_button.setIcon(getColoredIcon(get_resource_path("resources/italic.svg")))
         italic_button.setToolTip("Italic")
         italic_button.clicked.connect(lambda: self.editor_widget.format_text('italic'))
         layout.addWidget(italic_button)
         
         underline_button = ToolbarButton()
-        underline_button.setIcon(getColoredIcon("resources/underline.svg"))
+        underline_button.setIcon(getColoredIcon(get_resource_path("resources/underline.svg")))
         underline_button.setToolTip("Underline")
         underline_button.clicked.connect(lambda: self.editor_widget.format_text('underline'))
         layout.addWidget(underline_button)
         
         strike_button = ToolbarButton()
-        strike_button.setIcon(getColoredIcon("resources/strikethrough.svg"))
+        strike_button.setIcon(getColoredIcon(get_resource_path("resources/strikethrough.svg")))
         strike_button.setToolTip("Strike Through")
         strike_button.clicked.connect(lambda: self.editor_widget.format_text('strikeThrough'))
         layout.addWidget(strike_button)
         
         quote_button = ToolbarButton()
-        quote_button.setIcon(getColoredIcon("resources/quote.svg"))
+        quote_button.setIcon(getColoredIcon(get_resource_path("resources/quote.svg")))
         quote_button.setToolTip("Blockquote")
         quote_button.clicked.connect(lambda: self.editor_widget.format_text('formatBlock', '<BLOCKQUOTE>'))
         layout.addWidget(quote_button)
         
         bullet_list_button = ToolbarButton()
-        bullet_list_button.setIcon(getColoredIcon("resources/bullet.svg"))
+        bullet_list_button.setIcon(getColoredIcon(get_resource_path("resources/bullet.svg")))
         bullet_list_button.setToolTip("Bullet List")
         bullet_list_button.clicked.connect(lambda: self.editor_widget.format_text('insertUnorderedList'))
         layout.addWidget(bullet_list_button)
         
         numbered_list_button = ToolbarButton()
-        numbered_list_button.setIcon(getColoredIcon("resources/numbered.svg"))
+        numbered_list_button.setIcon(getColoredIcon(get_resource_path("resources/numbered.svg")))
         numbered_list_button.setToolTip("Numbered List")
         numbered_list_button.clicked.connect(lambda: self.editor_widget.format_text('insertOrderedList'))
         layout.addWidget(numbered_list_button)
         
         align_left = ToolbarButton()
-        align_left.setIcon(getColoredIcon("resources/align_left.svg"))
+        align_left.setIcon(getColoredIcon(get_resource_path("resources/align_left.svg")))
         align_left.setToolTip("Align Left")
         align_left.clicked.connect(lambda: self.editor_widget.format_text('justifyLeft'))
         layout.addWidget(align_left)
         
         align_center = ToolbarButton()
-        align_center.setIcon(getColoredIcon("resources/align_center.svg"))
+        align_center.setIcon(getColoredIcon(get_resource_path("resources/align_center.svg")))
         align_center.setToolTip("Center")
         align_center.clicked.connect(lambda: self.editor_widget.format_text('justifyCenter'))
         layout.addWidget(align_center)
         
         align_right = ToolbarButton()
-        align_right.setIcon(getColoredIcon("resources/align_right.svg"))
+        align_right.setIcon(getColoredIcon(get_resource_path("resources/align_right.svg")))
         align_right.setToolTip("Align Right")
         align_right.clicked.connect(lambda: self.editor_widget.format_text('justifyRight'))
         layout.addWidget(align_right)
         
         justify = ToolbarButton()
-        justify.setIcon(getColoredIcon("resources/justify.svg"))
+        justify.setIcon(getColoredIcon(get_resource_path("resources/justify.svg")))
         justify.setToolTip("Justify")
         justify.clicked.connect(lambda: self.editor_widget.format_text('justifyFull'))
         layout.addWidget(justify)
@@ -196,25 +206,25 @@ class ToolbarWidget(QFrame):
         
         # Group 3: Inserter buttons at end
         emoji_button = ToolbarButton()
-        emoji_button.setIcon(getColoredIcon("resources/emoji.svg"))
+        emoji_button.setIcon(getColoredIcon(get_resource_path("resources/emoji.svg")))
         emoji_button.setToolTip("Insert Emoji")
         emoji_button.clicked.connect(self.insert_emoji)
         layout.addWidget(emoji_button)
         
         link_button = ToolbarButton()
-        link_button.setIcon(getColoredIcon("resources/link.svg"))
+        link_button.setIcon(getColoredIcon(get_resource_path("resources/link.svg")))
         link_button.setToolTip("Insert Link")
         link_button.clicked.connect(self.insert_link)
         layout.addWidget(link_button)
         
         info_box_btn = ToolbarButton()
-        info_box_btn.setIcon(getColoredIcon("resources/info_box.svg"))
+        info_box_btn.setIcon(getColoredIcon(get_resource_path("resources/info_box.svg")))
         info_box_btn.setToolTip("Insert Info Box")
         info_box_btn.clicked.connect(self.editor_widget.insert_info_box)
         layout.addWidget(info_box_btn)
         
         image_button = ToolbarButton()
-        image_button.setIcon(getColoredIcon("resources/image.svg"))
+        image_button.setIcon(getColoredIcon(get_resource_path("resources/image.svg")))
         image_button.setToolTip("Insert Image")
         image_button.clicked.connect(self.show_image_dialog)
         layout.addWidget(image_button)

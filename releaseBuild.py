@@ -1,6 +1,7 @@
-import json
 import os
-import sys
+import json
+import subprocess
+import zipfile
 import shutil
 from datetime import datetime
 import PyInstaller.__main__
@@ -19,11 +20,11 @@ class DocuWeaveBuild:
     
     def get_version_string(self):
         v = self.version_info
-        version = f"{v['major']}.{v['minor']}.{v['patch']}"
-        if v['prerelease']:
-            version += f"-{v['prerelease']}.{v['build']}"
+        version = f"{v['major']}.{v['minor']}.{v['patch']}-{v['build']}"
+        if v.get('prerelease'):
+            version += f"-{v['prerelease']}"
         return version
-    
+
     def create_version_file(self):
         """Create version info for Windows executable"""
         version_array = [
@@ -67,24 +68,55 @@ VSVersionInfo(
         with open('version_info.txt', 'w') as f:
             f.write(content)
     
+    def update_version(self):
+        self.version_info["patch"] += 1
+        self.version_info["build"] += 1
+        if self.version_info["patch"] >= 10:
+            self.version_info["patch"] = 0
+            self.version_info["minor"] += 1
+        with open(self.version_file, 'w') as f:
+            json.dump(self.version_info, f, indent=4)
+
+    def clean_dist_folder(self):
+        if os.path.isdir(self.dist_dir):
+            print(f"Cleaning dist folder: {self.dist_dir}")
+            shutil.rmtree(self.dist_dir)
+
     def build_exe(self):
+        self.clean_dist_folder()
+        self.update_version()
+        print("Version updated!")
+
         self.create_version_file()
-        PyInstaller.__main__.run([
-            'docuweave.pyw',
-            '--name=DocuWeave',
-            '--windowed',  # No console window
-            '--onefile',   # Single executable
-            '--icon=resources/icon.ico',  # Add your icon here
-            '--add-data=ui/dark_theme.qss;ui',  # Include QSS file
-            '--add-data=resources/*;resources',  # Include resources
-            '--hidden-import=PyQt5.QtWebEngineWidgets',
-            '--hidden-import=PyQt5.QtWebEngine',
-            '--hidden-import=markdown',
-            '--version-file=version_info.txt',
-            '--clean',
-            '--noconfirm'
-        ])
-        os.remove('version_info.txt')  # Clean up temporary version file
+        # Run PyInstaller to build the exe
+        cmd = [
+            "pyinstaller", "--onefile", "--windowed",
+            "--add-data", "ui;ui",
+            "--add-data", "resources;resources",
+            "app.py"
+        ]
+        subprocess.run(cmd, check=True)
+        
+        # Locate the built exe; assume it is named 'app.exe' in dist folder
+        original_exe = os.path.join(self.dist_dir, "app.exe")
+        versioned_exe = os.path.join(self.dist_dir, f"DocuWeave-{self.version_string}.exe")
+        os.rename(original_exe, versioned_exe)
+        print(f"Renamed exe to: {versioned_exe}")
+        
+        # Create release zip archive including exe and files under "release_files" folder.
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        zip_name = os.path.join(self.dist_dir, f"DocuWeave-{self.version_string}.zip")
+        with zipfile.ZipFile(zip_name, 'w') as zipf:
+            zipf.write(versioned_exe, os.path.basename(versioned_exe))
+            for fname in ['LICENSE', 'README.md', 'changelog.md']:
+                file_path = os.path.join("release_files", fname)
+                if os.path.exists(file_path):
+                    zipf.write(file_path, fname)
+                else:
+                    print(f"Warning: {file_path} not found; skipping.")
+        print(f"Created release archive: {zip_name}")
+        os.remove(versioned_exe)
+        print("Removed exe after zipping.")
 
 if __name__ == "__main__":
     builder = DocuWeaveBuild()

@@ -20,7 +20,7 @@ class Renderer:
 
     def get_theme_variables(self) -> str:
         """Extract the inner CSS variable definitions from dark_theme.qss and escape curly braces for formatting."""
-        qss_path = os.path.join(os.path.dirname(__file__), "..", "ui", "dark_theme.qss")
+        qss_path = os.path.join(os.path.dirname(__file__), "..", "resources", "dark_theme.qss")
         try:
             with open(qss_path, "r", encoding="utf-8") as file:
                 qss_content = file.read()

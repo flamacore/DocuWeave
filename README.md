@@ -47,3 +47,5 @@ DocuWeave is a lightweight WYSIWYG markdown editor with project management and d
 _For more details, refer to the inline comments in the source files._
 
 Happy editing!
+
+Uicons by <a href="https://www.flaticon.com/uicons">Flaticon</a>
