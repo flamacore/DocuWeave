@@ -2,6 +2,9 @@
 
 DocuWeave is a lightweight WYSIWYG markdown editor with project management and dynamic theming.
 
+https://docuweave.website also exists but there's not much there :)
+<img width="1045" alt="DocuWeave-0 1 0-12-tech-alpha_zLhFM2TUQk" src="https://github.com/user-attachments/assets/193f9977-c3be-472e-a79d-b8d594b78f16" />
+
 ## Features
 
 - **Markdown Rendering**: Converts markdown to HTML via a custom `Renderer`.
