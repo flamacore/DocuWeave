@@ -35,6 +35,7 @@ QPushButton:hover {
 QTreeView {
     background-color: #252526;
     border: none;
+    font-size: 16px;
 }
 
 QTreeView::item {
@@ -70,6 +71,11 @@ QFrame#editorFrame {
 /* Toolbar Frame */
 QFrame#toolbarFrame {
     background-color: #1e1e1e;
+}
+
+/* Toolbar Separator */
+QFrame#toolbarSeparator {
+    background-color:rgb(209, 209, 209);
 }
 
 /* Splitter */

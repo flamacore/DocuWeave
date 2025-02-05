@@ -20,22 +20,7 @@ class ProjectSidebar(QTreeView):
         self.setEditTriggers(QTreeView.DoubleClicked |
                            QTreeView.EditKeyPressed)
         self.model.itemChanged.connect(self._on_item_renamed)
-        self.setStyleSheet("""
-            QTreeView {
-                background-color: #252526;
-                border: none;
-            }
-            QTreeView::item {
-                color: white;
-                padding: 5px;
-            }
-            QTreeView::item:hover {
-                background-color: #2A2D2E;
-            }
-            QTreeView::item:selected {
-                background-color: #094771;
-            }
-        """)
+        # Removed inline stylesheet; now handled in QSS
 
     def update_tree(self, documents):
         """Update tree while preserving selection and expansion states"""

@@ -2,7 +2,7 @@ import sys
 import os
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QPushButton, QFileDialog, QMessageBox, QMainWindow
 from PyQt5.QtGui import QIcon, QPixmap, QPainter, QColor, QTransform
-from PyQt5.QtCore import Qt, QSize, QEvent
+from PyQt5.QtCore import Qt, QSize, QEvent, QRectF  # Added QRectF
 from PyQt5.QtSvg import QSvgRenderer
 from ui.image_dialog import ImageDialog
 
@@ -41,14 +41,15 @@ class ToolbarButton(QPushButton):
         self.setStyleSheet(self.hover_style)
         super().mouseReleaseEvent(event)
 
-def getColoredIcon(file_path, color=None, size=QSize(32,32), stroke_color=None, stroke_width=2):
+def getColoredIcon(file_path, color=None, size=QSize(60,60), stroke_color=None, stroke_width=2):
     if color is None:
         color = QColor("white")
     renderer = QSvgRenderer(file_path)
     pixmap = QPixmap(size)
     pixmap.fill(Qt.transparent)
     painter = QPainter(pixmap)
-    renderer.render(painter)
+    # Render SVG into the full area of pixmap
+    renderer.render(painter, QRectF(0, 0, size.width(), size.height()))
     painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
     painter.fillRect(pixmap.rect(), color)
     painter.end()
@@ -75,7 +76,7 @@ def getColoredIcon(file_path, color=None, size=QSize(32,32), stroke_color=None, 
 
     return QIcon(pixmap)
 
-def getFlippedIcon(file_path, color=None, size=QSize(32,32)):
+def getFlippedIcon(file_path, color=None, size=QSize(60,60)):  # Changed size to 48x48
     icon = getColoredIcon(file_path, color, size)
     pixmap = icon.pixmap(size)
     transform = QTransform().scale(-1, 1)
@@ -87,22 +88,27 @@ class ToolbarWidget(QFrame):
         super().__init__(parent)
         self.editor_widget = editor_widget
         layout = QHBoxLayout(self)
+        # Set a larger fixed height for the toolbar
+        self.setFixedHeight(70)
         
         # Group 1: Undo/Redo at start
         undo_button = ToolbarButton()
         undo_button.setIcon(getColoredIcon(get_resource_path("resources/undo.svg")))  # Using colored icon
+        undo_button.setIconSize(QSize(28,28))
         undo_button.setToolTip("Undo")
         undo_button.clicked.connect(lambda: self.editor_widget.web_view.page().runJavaScript("document.execCommand('undo');"))
         layout.addWidget(undo_button)
         
         redo_button = ToolbarButton()
         redo_button.setIcon(getFlippedIcon(get_resource_path("resources/undo.svg")))  # Use flipped undo icon for redo
+        redo_button.setIconSize(QSize(28,28))
         redo_button.setToolTip("Redo")
         redo_button.clicked.connect(lambda: self.editor_widget.web_view.page().runJavaScript("document.execCommand('redo');"))
         layout.addWidget(redo_button)
         
         # Vertical separator after Undo/Redo
         separator1 = QFrame()
+        separator1.setObjectName("toolbarSeparator")
         separator1.setFrameShape(QFrame.VLine)
         separator1.setFrameShadow(QFrame.Sunken)
         layout.addWidget(separator1)
@@ -110,96 +116,112 @@ class ToolbarWidget(QFrame):
         # Group 2: Text formatting buttons (headings, bold, italic, underline, strike, quote, lists, alignments)
         h1_button = ToolbarButton()
         h1_button.setIcon(getColoredIcon(get_resource_path("resources/h1.svg")))
+        h1_button.setIconSize(QSize(28,28))
         h1_button.setToolTip("Heading 1")
         h1_button.clicked.connect(lambda: self.editor_widget.format_text('formatBlock', '<H1>'))
         layout.addWidget(h1_button)
         
         h2_button = ToolbarButton()
         h2_button.setIcon(getColoredIcon(get_resource_path("resources/h2.svg")))
+        h2_button.setIconSize(QSize(28,28))
         h2_button.setToolTip("Heading 2")
         h2_button.clicked.connect(lambda: self.editor_widget.format_text('formatBlock', '<H2>'))
         layout.addWidget(h2_button)
         
         h3_button = ToolbarButton()
         h3_button.setIcon(getColoredIcon(get_resource_path("resources/h3.svg")))
+        h3_button.setIconSize(QSize(28,28))
         h3_button.setToolTip("Heading 3")
         h3_button.clicked.connect(lambda: self.editor_widget.format_text('formatBlock', '<H3>'))
         layout.addWidget(h3_button)
         
         normal_button = ToolbarButton()
         normal_button.setIcon(getColoredIcon(get_resource_path("resources/normal.svg")))
+        normal_button.setIconSize(QSize(28,28))
         normal_button.setToolTip("Normal Text")
         normal_button.clicked.connect(lambda: self.editor_widget.format_text('formatBlock', '<P>'))
         layout.addWidget(normal_button)
         
         bold_button = ToolbarButton()
         bold_button.setIcon(getColoredIcon(get_resource_path("resources/bold.svg")))
+        bold_button.setIconSize(QSize(28,28))
         bold_button.setToolTip("Bold")
         bold_button.clicked.connect(lambda: self.editor_widget.format_text('bold'))
         layout.addWidget(bold_button)
         
         italic_button = ToolbarButton()
         italic_button.setIcon(getColoredIcon(get_resource_path("resources/italic.svg")))
+        italic_button.setIconSize(QSize(28,28))
         italic_button.setToolTip("Italic")
         italic_button.clicked.connect(lambda: self.editor_widget.format_text('italic'))
         layout.addWidget(italic_button)
         
         underline_button = ToolbarButton()
         underline_button.setIcon(getColoredIcon(get_resource_path("resources/underline.svg")))
+        underline_button.setIconSize(QSize(28,28))
         underline_button.setToolTip("Underline")
         underline_button.clicked.connect(lambda: self.editor_widget.format_text('underline'))
         layout.addWidget(underline_button)
         
         strike_button = ToolbarButton()
         strike_button.setIcon(getColoredIcon(get_resource_path("resources/strikethrough.svg")))
+        strike_button.setIconSize(QSize(28,28))
         strike_button.setToolTip("Strike Through")
         strike_button.clicked.connect(lambda: self.editor_widget.format_text('strikeThrough'))
         layout.addWidget(strike_button)
         
         quote_button = ToolbarButton()
         quote_button.setIcon(getColoredIcon(get_resource_path("resources/quote.svg")))
+        quote_button.setIconSize(QSize(28,28))
         quote_button.setToolTip("Blockquote")
         quote_button.clicked.connect(lambda: self.editor_widget.format_text('formatBlock', '<BLOCKQUOTE>'))
         layout.addWidget(quote_button)
         
         bullet_list_button = ToolbarButton()
         bullet_list_button.setIcon(getColoredIcon(get_resource_path("resources/bullet.svg")))
+        bullet_list_button.setIconSize(QSize(28,28))
         bullet_list_button.setToolTip("Bullet List")
         bullet_list_button.clicked.connect(lambda: self.editor_widget.format_text('insertUnorderedList'))
         layout.addWidget(bullet_list_button)
         
         numbered_list_button = ToolbarButton()
         numbered_list_button.setIcon(getColoredIcon(get_resource_path("resources/numbered.svg")))
+        numbered_list_button.setIconSize(QSize(28,28))
         numbered_list_button.setToolTip("Numbered List")
         numbered_list_button.clicked.connect(lambda: self.editor_widget.format_text('insertOrderedList'))
         layout.addWidget(numbered_list_button)
         
         align_left = ToolbarButton()
         align_left.setIcon(getColoredIcon(get_resource_path("resources/align_left.svg")))
+        align_left.setIconSize(QSize(28,28))
         align_left.setToolTip("Align Left")
         align_left.clicked.connect(lambda: self.editor_widget.format_text('justifyLeft'))
         layout.addWidget(align_left)
         
         align_center = ToolbarButton()
         align_center.setIcon(getColoredIcon(get_resource_path("resources/align_center.svg")))
+        align_center.setIconSize(QSize(28,28))
         align_center.setToolTip("Center")
         align_center.clicked.connect(lambda: self.editor_widget.format_text('justifyCenter'))
         layout.addWidget(align_center)
         
         align_right = ToolbarButton()
         align_right.setIcon(getColoredIcon(get_resource_path("resources/align_right.svg")))
+        align_right.setIconSize(QSize(28,28))
         align_right.setToolTip("Align Right")
         align_right.clicked.connect(lambda: self.editor_widget.format_text('justifyRight'))
         layout.addWidget(align_right)
         
         justify = ToolbarButton()
         justify.setIcon(getColoredIcon(get_resource_path("resources/justify.svg")))
+        justify.setIconSize(QSize(28,28))
         justify.setToolTip("Justify")
         justify.clicked.connect(lambda: self.editor_widget.format_text('justifyFull'))
         layout.addWidget(justify)
         
         # Vertical separator after text formatters
         separator2 = QFrame()
+        separator2.setObjectName("toolbarSeparator")
         separator2.setFrameShape(QFrame.VLine)
         separator2.setFrameShadow(QFrame.Sunken)
         layout.addWidget(separator2)
@@ -207,24 +229,28 @@ class ToolbarWidget(QFrame):
         # Group 3: Inserter buttons at end
         emoji_button = ToolbarButton()
         emoji_button.setIcon(getColoredIcon(get_resource_path("resources/emoji.svg")))
+        emoji_button.setIconSize(QSize(28,28))
         emoji_button.setToolTip("Insert Emoji")
         emoji_button.clicked.connect(self.insert_emoji)
         layout.addWidget(emoji_button)
         
         link_button = ToolbarButton()
         link_button.setIcon(getColoredIcon(get_resource_path("resources/link.svg")))
+        link_button.setIconSize(QSize(28,28))
         link_button.setToolTip("Insert Link")
         link_button.clicked.connect(self.insert_link)
         layout.addWidget(link_button)
         
         info_box_btn = ToolbarButton()
         info_box_btn.setIcon(getColoredIcon(get_resource_path("resources/info_box.svg")))
+        info_box_btn.setIconSize(QSize(28,28))
         info_box_btn.setToolTip("Insert Info Box")
         info_box_btn.clicked.connect(self.editor_widget.insert_info_box)
         layout.addWidget(info_box_btn)
         
         image_button = ToolbarButton()
         image_button.setIcon(getColoredIcon(get_resource_path("resources/image.svg")))
+        image_button.setIconSize(QSize(28,28))
         image_button.setToolTip("Insert Image")
         image_button.clicked.connect(self.show_image_dialog)
         layout.addWidget(image_button)
