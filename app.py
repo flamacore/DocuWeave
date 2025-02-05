@@ -31,10 +31,10 @@ def main():
     args = parser.parse_args()
 
     # Hide console if not in debug mode
-    #if not args.debug and sys.platform == 'win32':
-    #    import win32gui, win32con
-    #    hwnd = win32gui.GetForegroundWindow()
-    #    win32gui.ShowWindow(hwnd, win32con.SW_HIDE)
+    if not args.debug and sys.platform == 'win32':
+        import win32gui, win32con
+        hwnd = win32gui.GetForegroundWindow()
+        win32gui.ShowWindow(hwnd, win32con.SW_HIDE)
 
     app = QApplication(sys.argv)
     window = MainWindow()
