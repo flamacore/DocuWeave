@@ -41,10 +41,6 @@
             document.execCommand('insertHTML', false, infoBoxHTML);
         }}
         document.addEventListener("keydown", function(e) {{
-            if (e.key === "Enter" && !e.shiftKey) {{
-                e.preventDefault();
-                document.execCommand('insertHTML', false, '<p><br></p>');
-            }}
             if (e.key === "Tab") {{
                 e.preventDefault();
                 if (e.shiftKey) {{
