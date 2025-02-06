@@ -202,18 +202,27 @@ class EditorWidget(QWidget):
             function handleMouseOver(e) {
                 if (e.target.matches('td, th')) {
                     let cell = e.target;
+                    let rect = cell.getBoundingClientRect();
+                    let threshold = 4;
+                    let x = e.clientX;
+                    let y = e.clientY;
+                    // If mouse is not near any border, remove buttons and exit.
+                    if (x - rect.left > threshold &&
+                        rect.right - x > threshold &&
+                        y - rect.top > threshold &&
+                        rect.bottom - y > threshold) {
+                        removeHandles();
+                        return;
+                    }
                     cancelRemoval();
                     cell.removeEventListener('mouseenter', handleCellMouseEnter);
                     cell.addEventListener('mouseenter', handleCellMouseEnter);
                     cell.removeEventListener('mouseleave', handleCellMouseLeave);
                     cell.addEventListener('mouseleave', handleCellMouseLeave);
                     
-                    let rect = cell.getBoundingClientRect();
                     removeHandles();
-                    // Determine if this is a first row or first column cell
                     let isFirstRow = cell.parentElement.rowIndex === 0;
                     let isFirstColumn = cell.cellIndex === 0;
-                    
                     let btns = [];
                     if (isFirstColumn) {
                         btns.push({
