@@ -126,6 +126,153 @@ class EditorWidget(QWidget):
         else:
             base_url = QUrl()
         self.web_view.setHtml(final_html, base_url)
+        self.enable_table_editing()
+
+    def enable_table_editing(self):
+        js = """
+        (function() {
+            console.log("Enabling table editing...");
+            var ed = document.getElementById('editor');
+            if (!ed) {
+                console.error("Editor element not found!");
+                return;
+            }
+            
+            var removalTimer = null;
+            function removeHandles() {
+                document.querySelectorAll('.table-handle-btn-container').forEach(container => container.remove());
+            }
+            function scheduleRemoval() {
+                removalTimer = setTimeout(removeHandles, 300);
+            }
+            function cancelRemoval() {
+                if (removalTimer) {
+                    clearTimeout(removalTimer);
+                    removalTimer = null;
+                }
+            }
+            
+            function createButtonWithBuffer(btn) {
+                // Determine color based on button text
+                var bgColor = '#666';
+                if (btn.text === '+') {
+                    bgColor = '#28a745';
+                } else if (btn.text === '-') {
+                    bgColor = '#dc3545';
+                }
+                // Create container with padding for better hover
+                let container = document.createElement('div');
+                container.className = 'table-handle-btn-container';
+                container.style.cssText = `
+                    position: fixed;
+                    top: ${btn.top - 10}px;
+                    left: ${btn.left - 10}px;
+                    padding: 10px;
+                    z-index: 1000;
+                `;
+                let buttonEl = document.createElement('div');
+                buttonEl.className = 'table-handle-btn';
+                buttonEl.textContent = btn.text;
+                buttonEl.style.cssText = `
+                    background: ${bgColor};
+                    color: white;
+                    width: 16px;
+                    height: 16px;
+                    text-align: center;
+                    line-height: 16px;
+                    cursor: pointer;
+                    border-radius: 50%;
+                `;
+                buttonEl.onclick = btn.action;
+                container.appendChild(buttonEl);
+                container.addEventListener('mouseenter', cancelRemoval);
+                container.addEventListener('mouseleave', scheduleRemoval);
+                document.body.appendChild(container);
+                return container;
+            }
+            
+            function handleCellMouseEnter(e) {
+                cancelRemoval();
+            }
+            
+            function handleCellMouseLeave(e) {
+                scheduleRemoval();
+            }
+            
+            function handleMouseOver(e) {
+                if (e.target.matches('td, th')) {
+                    let cell = e.target;
+                    cancelRemoval();
+                    cell.removeEventListener('mouseenter', handleCellMouseEnter);
+                    cell.addEventListener('mouseenter', handleCellMouseEnter);
+                    cell.removeEventListener('mouseleave', handleCellMouseLeave);
+                    cell.addEventListener('mouseleave', handleCellMouseLeave);
+                    
+                    let rect = cell.getBoundingClientRect();
+                    removeHandles();
+                    // Determine if this is a first row or first column cell
+                    let isFirstRow = cell.parentElement.rowIndex === 0;
+                    let isFirstColumn = cell.cellIndex === 0;
+                    
+                    let btns = [];
+                    if (isFirstColumn) {
+                        btns.push({
+                            text: '-',
+                            top: rect.top,
+                            left: rect.left - 20,
+                            action: () => cell.parentElement.remove()
+                        });
+                    }
+                    if (isFirstRow) {
+                        btns.push({
+                            text: '-',
+                            top: rect.top - 20,
+                            left: rect.left,
+                            action: () => {
+                                let idx = Array.from(cell.parentElement.children).indexOf(cell);
+                                cell.closest('table').querySelectorAll('tr').forEach(row => {
+                                    if (row.cells[idx]) row.deleteCell(idx);
+                                });
+                            }
+                        });
+                    }
+                    btns.push(
+                        {
+                            text: '+',
+                            top: rect.bottom,
+                            left: rect.left - 20,
+                            action: () => {
+                                let newRow = cell.closest('table').insertRow(cell.parentElement.rowIndex + 1);
+                                for (let i = 0; i < cell.parentElement.cells.length; i++) {
+                                    let newCell = newRow.insertCell();
+                                    newCell.style.border = '1px solid #ccc';
+                                    newCell.style.padding = '8px';
+                                }
+                            }
+                        },
+                        {
+                            text: '+',
+                            top: rect.top - 20,
+                            left: rect.right,
+                            action: () => {
+                                let idx = Array.from(cell.parentElement.children).indexOf(cell) + 1;
+                                cell.closest('table').querySelectorAll('tr').forEach(row => {
+                                    let newCell = row.insertCell(idx);
+                                    newCell.style.border = '1px solid #ccc';
+                                    newCell.style.padding = '8px';
+                                });
+                            }
+                        }
+                    );
+                    btns.forEach(btn => createButtonWithBuffer(btn));
+                }
+            }
+            
+            ed.addEventListener('mouseover', handleMouseOver);
+            console.log("Table editing enabled!");
+        })();
+        """
+        self.web_view.page().runJavaScript(js)
 
     def set_document_title(self, title: str):
         # Title no longer shown; no action needed.
@@ -206,4 +353,4 @@ class EditorWidget(QWidget):
             document.execCommand('insertHTML', false, table.outerHTML);
         }})();
         """
-        self.web_view.page().runJavaScript(js)
+        self.web_view.page().runJavaScript(js, lambda result: self.enable_table_editing())
