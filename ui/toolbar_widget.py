@@ -1,6 +1,6 @@
 import sys
 import os
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QPushButton, QFileDialog, QMessageBox, QMainWindow
+from PyQt5.QtWidgets import QFrame, QHBoxLayout, QPushButton, QFileDialog, QMessageBox, QMainWindow, QInputDialog  # Added QInputDialog
 from PyQt5.QtGui import QIcon, QPixmap, QPainter, QColor, QTransform
 from PyQt5.QtCore import Qt, QSize, QEvent, QRectF  # Added QRectF
 from PyQt5.QtSvg import QSvgRenderer
@@ -255,6 +255,14 @@ class ToolbarWidget(QFrame):
         image_button.clicked.connect(self.show_image_dialog)
         layout.addWidget(image_button)
         
+        # Example: Insert Table button
+        table_button = ToolbarButton()
+        table_button.setIcon(getColoredIcon(get_resource_path("resources/table.svg")))
+        table_button.setIconSize(QSize(28,28))
+        table_button.setToolTip("Insert Table")
+        table_button.clicked.connect(self.insert_table_dialog)
+        layout.addWidget(table_button)
+
         layout.addStretch()
         self.setStyleSheet("background-color: #1e1e1e;")
 
@@ -319,3 +327,12 @@ class ToolbarWidget(QFrame):
         if ok and emoji:
             js = f"document.execCommand('insertText', false, '{emoji}');"
             self.editor_widget.web_view.page().runJavaScript(js)
+
+    def insert_table_dialog(self):
+        rows, ok1 = QInputDialog.getInt(self, "Table Rows", "Number of rows:", 3, 1, 50)
+        if not ok1:
+            return
+        cols, ok2 = QInputDialog.getInt(self, "Table Columns", "Number of columns:", 3, 1, 50)
+        if not ok2:
+            return
+        self.editor_widget.insert_table(rows, cols)

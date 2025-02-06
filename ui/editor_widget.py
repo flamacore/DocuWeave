@@ -184,3 +184,26 @@ class EditorWidget(QWidget):
     def insert_info_box(self):
         """Insert an editable info box into the document."""
         self.web_view.page().runJavaScript("insertInfoBox();")
+
+    def insert_table(self, rows, cols):
+        js = f"""
+        (function() {{
+            var ed = document.getElementById('editor');
+            ed.focus();
+            var table = document.createElement('table');
+            table.style.width = '70%';
+            table.style.borderCollapse = 'collapse';
+            table.style.border = '1px solid #ccc';
+            for (var r = 0; r < {rows}; r++) {{
+                var row = table.insertRow(r);
+                for (var c = 0; c < {cols}; c++) {{
+                    var cell = row.insertCell(c);
+                    cell.style.border = '1px solid #ccc';
+                    cell.style.padding = '8px';
+                    cell.textContent = '';
+                }}
+            }}
+            document.execCommand('insertHTML', false, table.outerHTML);
+        }})();
+        """
+        self.web_view.page().runJavaScript(js)
