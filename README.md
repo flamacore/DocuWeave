@@ -1,56 +1,65 @@
 # DocuWeave
 
-DocuWeave is a lightweight WYSIWYG markdown editor with project management and dynamic theming.
+DocuWeave is a lightweight WYSIWYG Markdown Editor built with PyQt5. It offers a modern interface, dynamic theming, and streamlined project management to simplify your document editing experience.
 
-https://docuweave.website also exists but there's not much there :)
+## Tech Alpha Release
 
-<img width="920" alt="python_PowlkiOfZx" src="https://github.com/user-attachments/assets/29aa527e-fac6-4ac9-801b-d335cc9fd461" />
+Welcome to the **Tech Alpha Release** of DocuWeave. This release incorporates several significant updates aimed at improving UI scaling, editor performance, and project management workflows. Although it is still in its alpha stage, we encourage you to try out the new features and provide feedback.
 
+### What's New?
 
-## Features
+- **High DPI and Scaling**  
+  Improved support for high-resolution displays ensures that all UI elements render crisply.
 
-- **Markdown Rendering**: Converts markdown to HTML via a custom `Renderer`.
-- **WYSIWYG Editor**: Editable content is managed by `EditorWidget`, which supports images, info boxes, and live content updates.
-- **Dynamic Theming**: 
-  - Theme variables are defined in `dark_theme.qss` and injected into the HTML template.
-  - CSS variables for colors, fonts, spacing, etc. enable easy customization.
-- **Project Management**: Supports project creation, saving, and loading with file management via a sidebar.
-- **Custom Window Frame**: Modern frameless, translucent UI with a custom title bar and context menus.
+- **Enhanced Project Management**  
+  Experience faster loading, saving, and renaming of projects with robust file handling and auto-cleanup of orphaned files.
+
+- **Revamped Editing Experience**  
+  - New toolbar icons and a refined layout.
+  - Table insertion support for richer content.
+  - Real-time preview updates with a responsive editing interface.
+
+- **Performance & Stability**  
+  Optimizations across the board result in quicker startup times, more efficient resource usage, and better overall responsiveness.
+
+## Getting Started
+
+1. **Clone the Repository:**
+   ```
+   git clone https://github.com/yourusername/DocuWeave.git
+   ```
+2. **Install Dependencies:**
+   ```
+   pip install -r requirements.txt
+   ```
+3. **Run the Application:**
+   ```
+   python app.py
+   ```
+
+## Changelog
+
+For detailed changes, see [release_files/changelog.md](release_files/changelog.md).
+
+## Contributing & Feedback
+
+Your feedback is invaluable! As we continue to refine this alpha release, please report any issues or suggestions via our issue tracker on GitHub.
 
 ## Repository Structure
 
 - **/core/**
-  - `renderer.py`: Renders markdown to HTML and extracts CSS theme variables.
-  - `project.py`: Manages project files and document storage.
+  - `renderer.py`: Handles markdown to HTML conversion and manages theme variables.
+  - `project.py`: Manages project file handling, saving, and loading of documents.
 - **/ui/**
-  - `editor_widget.py`: Contains the WYSIWYG editor implementation.
-  - `editor_template.html`: HTML template with placeholders for content and theme variables.
-  - `toolbar_widget.py`: Contains SVG icon utilities (including optional stroke).
-  - `main_window.py`: Manages the overall window layout and custom title bar.
-  - Other UI components (custom_webview, project_sidebar, startup_dialog, etc.).
+  - `editor_widget.py`: Implements the WYSIWYG editor.
+  - `editor_template.html`: HTML template with dynamic placeholders.
+  - `toolbar_widget.py`: Contains utilities for managing toolbar icons.
+  - `main_window.py`: Sets up the main application window with custom title bar and context menus.
 - **/resources/**
-  - Includes SVG files for toolbar icons and the app icon.
+  - Contains SVG icons, the app icon, and theming in `dark_theme.qss`.
 
-## Setup & Running
+---
 
-1. Install dependencies (e.g., PyQt5 and markdown).
-   ```
-   pip install -r requirements.txt
-   ```
-2. Run the main application:
-   ```
-   python app.py
-   ```
-3. Enjoy the live preview in the editor.
+Happy editing and thank you for testing DocuWeave Tech Alpha!
 
-## Recent Updates
-
-- **SVG Icon Stroke**: Added support for an optional stroke in SVG icons for improved visual appearance.
-- **Enhanced Theming**: Dynamic injection of CSS variables from QSS and proper escaping for Python string formatting.
-- **Toolbar Improvements**: Added more icons and improved the toolbar layout.
-
-_For more details, refer to the inline comments in the source files._
-
-Happy editing!
-
-Uicons by <a href="https://www.flaticon.com/uicons">Flaticon</a>
+*Uicons by [Flaticon](https://www.flaticon.com/uicons)*
