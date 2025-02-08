@@ -85,13 +85,13 @@ class MainWindow(QMainWindow):
         layout = QHBoxLayout(title_bar)
         layout.setContentsMargins(10, 5, 10, 5)
         
-        # App title acting as File button
-        title = QLabel(f"DocuWeave - {self.project.name}")
-        title.setObjectName("titleLabel")
-        title.setFont(QFont("Segoe UI", 12))
-        title.setAlignment(Qt.AlignCenter)
-        title.setMaximumWidth(500)  # Set fixed width for title
-        title.setStyleSheet("""
+        # App title acting as File button; store as attribute for later updates
+        self.title_label = QLabel(f"DocuWeave - {self.project.name}")
+        self.title_label.setObjectName("titleLabel")
+        self.title_label.setFont(QFont("Segoe UI", 12))
+        self.title_label.setAlignment(Qt.AlignCenter)
+        self.title_label.setMaximumWidth(500)
+        self.title_label.setStyleSheet("""
             QLabel#titleLabel {
                 background-color: transparent;
                 color: white;
@@ -102,8 +102,8 @@ class MainWindow(QMainWindow):
                 background-color: #3e3e3e;
             }
         """)
-        title.mousePressEvent = self.show_menu  # Connect click event to show_menu
-        layout.addWidget(title)
+        self.title_label.mousePressEvent = self.show_menu
+        layout.addWidget(self.title_label)
         
         layout.addStretch()
         
@@ -123,6 +123,10 @@ class MainWindow(QMainWindow):
         
         title_bar.setFixedHeight(50)  # Adjust height to fit larger buttons
         return title_bar
+
+    def update_title_bar(self):
+        """Refresh the title bar to display the current project name"""
+        self.title_label.setText(f"DocuWeave - {self.project.name}")
 
     def show_menu(self, event):
         if not self.menu:
@@ -275,6 +279,7 @@ class MainWindow(QMainWindow):
         self.editor_widget.set_content("")
         self.editor_widget.project = self.project
         self.toolbar_widget.editor_widget = self.editor_widget
+        self.update_title_bar()  # Update title bar
 
     def open_project(self, file_path=None):
         """Open a project from file path or show dialog to select one"""
@@ -294,6 +299,7 @@ class MainWindow(QMainWindow):
                 self.sidebar.update_tree(self.project.documents)
                 self.editor_widget.project = self.project
                 self.toolbar_widget.editor_widget = self.editor_widget
+                self.update_title_bar()  # Update title bar after project load
                 
                 # Load the current document if specified in project
                 if self.project.current_file and self.project.current_file in self.project.documents:
@@ -477,6 +483,7 @@ class MainWindow(QMainWindow):
         
         # Save the project immediately to create necessary folders
         self.project.save_project(project_file)
+        self.update_title_bar()  # Update title bar after project creation
         print(f"\033[94mAfter create_new_project_at_path, project_path: {self.project.project_path}\033[0m")
         
         # Double-check project path is set
