@@ -86,11 +86,11 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(10, 5, 10, 5)
         
         # App title acting as File button
-        title = QLabel("DocuWeave")
+        title = QLabel(f"DocuWeave - {self.project.name}")
         title.setObjectName("titleLabel")
         title.setFont(QFont("Segoe UI", 12))
         title.setAlignment(Qt.AlignCenter)
-        title.setFixedWidth(200)  # Set fixed width for title
+        title.setMaximumWidth(500)  # Set fixed width for title
         title.setStyleSheet("""
             QLabel#titleLabel {
                 background-color: transparent;

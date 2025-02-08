@@ -329,10 +329,35 @@ class ToolbarWidget(QFrame):
             self.editor_widget.web_view.page().runJavaScript(js)
 
     def insert_table_dialog(self):
-        rows, ok1 = QInputDialog.getInt(self, "Table Rows", "Number of rows:", 3, 1, 50)
-        if not ok1:
+        from PyQt5.QtWidgets import QMainWindow, QMessageBox
+        # Find MainWindow instance similar to the image dialog process
+        main_window = None
+        widget = self
+        while widget and not isinstance(widget, QMainWindow):
+            widget = widget.parent()
+        main_window = widget
+
+        if not self.editor_widget.project.project_path and main_window:
+            def after_save():
+                if not self.editor_widget.project.project_path:
+                    QMessageBox.warning(
+                        self,
+                        "No Project",
+                        "You must save the project before inserting a table.",
+                        QMessageBox.Ok
+                    )
+                    return
+                self._show_table_dialog_impl()
+            main_window.save_project(after_save)
             return
-        cols, ok2 = QInputDialog.getInt(self, "Table Columns", "Number of columns:", 3, 1, 50)
-        if not ok2:
-            return
-        self.editor_widget.insert_table(rows, cols)
+
+        self._show_table_dialog_impl()
+
+    def _show_table_dialog_impl(self):
+        from ui.table_dialog import TableDialog
+        from PyQt5.QtCore import Qt
+        dialog = TableDialog(self)
+        dialog.setWindowModality(Qt.ApplicationModal)
+        if dialog.exec_():
+            rows, cols = dialog.get_table_dimensions()
+            self.editor_widget.insert_table(rows, cols)
