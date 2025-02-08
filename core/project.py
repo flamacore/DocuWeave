@@ -42,16 +42,16 @@ class Project:
         # Clean up old files that are no longer in the project
         if os.path.exists(project_dir):
             existing_files = set(f for f in os.listdir(project_dir) 
-                               if f.endswith('.md'))
+                               if f.endswith('.html'))
             
             # Calculate new filenames
             new_files = set()
             for doc_id in self.documents.keys():
                 if doc_id.startswith("Untitled "):
-                    new_files.add(f"document_{doc_id.split()[-1]}.md")
+                    new_files.add(f"document_{doc_id.split()[-1]}.html")
                 else:
                     base_name = os.path.splitext(doc_id)[0]
-                    new_files.add(f"{base_name}.md")
+                    new_files.add(f"{base_name}.html")
             
             # Remove files that are no longer needed
             for old_file in existing_files - new_files:
@@ -66,11 +66,11 @@ class Project:
         saved_documents = {}
         for doc_id, content in self.documents.items():
             if doc_id.startswith("Untitled "):
-                file_name = f"document_{doc_id.split()[-1]}.md"
+                file_name = f"document_{doc_id.split()[-1]}.html"
             else:
-                # Ensure file has .md extension
+                # Ensure file has .html extension
                 base_name = os.path.splitext(doc_id)[0]  # Remove any existing extension
-                file_name = f"{base_name}.md"
+                file_name = f"{base_name}.html"
             
             file_path = os.path.join(project_dir, file_name)
             with open(file_path, 'w', encoding='utf-8') as f:
@@ -121,7 +121,7 @@ class Project:
             if self.project_path:
                 project_dir = os.path.splitext(self.project_path)[0]
                 old_file = os.path.join(project_dir, 
-                    f"document_{old_name.split()[-1]}.md" if old_name.startswith("Untitled ") 
+                    f"document_{old_name.split()[-1]}.html" if old_name.startswith("Untitled ") 
                     else os.path.basename(old_name))
                 try:
                     if os.path.exists(old_file):

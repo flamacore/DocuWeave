@@ -1,18 +1,14 @@
 import os
 import re
+import markdown
 
 class Renderer:
     def __init__(self):
         pass
 
     def render(self, markdown_text: str) -> str:
-        import markdown
-        html_output = markdown.markdown(markdown_text)
-        import re
-        html_output = re.sub(r'<pre><code>(.*?)</code></pre>',
-                             lambda m: m.group(1), html_output,
-                             flags=re.DOTALL)
-        return html_output
+        # Simply return the trimmed text, assuming it is already HTML.
+        return markdown_text.strip()
 
     def save_rendered(self, html_output, file_path):
         with open(file_path, 'w', encoding="utf-8") as file:

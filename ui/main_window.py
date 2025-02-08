@@ -294,13 +294,19 @@ class MainWindow(QMainWindow):
                 self.sidebar.update_tree(self.project.documents)
                 self.editor_widget.project = self.project
                 self.toolbar_widget.editor_widget = self.editor_widget
-                # Open the first document if it exists; otherwise, create a new one.
-                if self.project.documents:
+                
+                # Load the current document if specified in project
+                if self.project.current_file and self.project.current_file in self.project.documents:
+                    content = self.project.get_document(self.project.current_file)
+                    self.editor_widget.set_content(content)
+                # If no current file but documents exist, load the first one
+                elif self.project.documents:
                     first_doc = next(iter(self.project.documents))
-                    self._save_current_document(lambda: self.change_document(first_doc))
+                    self.project.current_file = first_doc
+                    content = self.project.get_document(first_doc)
+                    self.editor_widget.set_content(content)
                 else:
                     self.create_new_document()
-                self.editor_widget.project = self.project
                 return True
             except Exception as e:
                 print(f"Error loading project: {e}")
