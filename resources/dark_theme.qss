@@ -53,12 +53,33 @@ QTreeView::item:selected {
 
 /* Context Menu */
 QMenu {
-    background-color: #2d2d2d;
+    background-color: #2e2e2e;
+    border: 1px solid #555;
     color: white;
-    border: 1px solid #3d3d3d;
+    border-radius: 5px;
+}
+
+QMenu::item {
+    padding: 5px 25px 5px 20px;
+    border-radius: 5px;
 }
 
 QMenu::item:selected {
+    background-color: #3e3e3e;
+}
+
+/* Project Sidebar Context Menu */
+QMenu#projectSidebarMenu {
+    background-color: #2d2d2d;
+    color: white;
+    border: 1px solid #3d3d3d;
+    border-radius: 5px;
+}
+QMenu#projectSidebarMenu::item {
+    padding: 5px 25px 5px 20px;
+    border-radius: 5px;
+}
+QMenu#projectSidebarMenu::item:selected {
     background-color: #094771;
 }
 
@@ -151,6 +172,12 @@ QScrollBar::down-arrow:vertical {
     border-radius: 4px;
     color: #cccccc;
     margin: 1px 4px;
+}
+
+/* Add hover effect for title bar menu items */
+#titleMenuBar::item:hover {
+    background-color: #3d3d3d;
+    color: white;
 }
 
 #titleMenuBar::item:selected {

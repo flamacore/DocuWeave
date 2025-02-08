@@ -16,7 +16,8 @@ class EditorWidget(QWidget):
         super().__init__(parent)
         self.renderer = renderer
         self.project = project  # Store project reference
-        self.setStyleSheet("background-color: var(--body-bg);")  # Now uses theme variable if needed
+        # Removed inline background-style; styling is applied via dark_theme.qss.
+        # self.setStyleSheet("background-color: var(--body-bg);")
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
         self.web_view = QWebEngineView()

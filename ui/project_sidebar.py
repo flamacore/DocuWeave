@@ -74,17 +74,7 @@ class ProjectSidebar(QTreeView):
 
     def show_context_menu(self, position):
         menu = QMenu()
-        menu.setStyleSheet("""
-            QMenu {
-                background-color: #2d2d2d;
-                color: white;
-                border: 1px solid #3d3d3d;
-            }
-            QMenu::item:selected {
-                background-color: #094771;
-            }
-        """)
-        
+        menu.setObjectName("projectSidebarMenu")  # Set object name to apply QSS from dark_theme.qss
         new_file = menu.addAction("New Document")
         delete_doc = menu.addAction("Delete Document")
         
@@ -92,7 +82,7 @@ class ProjectSidebar(QTreeView):
         
         if action == new_file:
             self.new_file_requested.emit()
-            return  # Add return to prevent any other processing
+            return
         elif action == delete_doc:
             index = self.indexAt(position)
             if index.isValid():

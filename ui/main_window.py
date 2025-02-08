@@ -11,6 +11,7 @@ from .editor_widget import EditorWidget
 from .toolbar_widget import ToolbarWidget
 from .project_sidebar import ProjectSidebar
 from .startup_dialog import StartupDialog  # Add this import
+from ui.hover_label import HoverLabel  # new import
 import colorama
 colorama.init(autoreset=True)
 
@@ -18,11 +19,7 @@ colorama.init(autoreset=True)
 class CustomWebEngineView(QWebEngineView):
     def contextMenuEvent(self, event):
         menu = self.page().createStandardContextMenu()
-        menu.setStyleSheet("""
-            QMenu { background-color: #2e2e2e; border: 1px solid #555; color: white; border-radius: 10px; }
-            QMenu::item { padding: 5px 25px 5px 20px; border-radius: 5px; }
-            QMenu::item:selected { background-color: #3e3e3e; border-radius: 5px; }
-        """)
+        # Removed inline style; rely on QSS styling via widget objectNames
         menu.exec_(event.globalPos())
 
 class MainWindow(QMainWindow):
@@ -85,43 +82,31 @@ class MainWindow(QMainWindow):
         layout = QHBoxLayout(title_bar)
         layout.setContentsMargins(10, 5, 10, 5)
         
-        # App title acting as File button; store as attribute for later updates
-        self.title_label = QLabel(f"DocuWeave - {self.project.name}")
+        # Use HoverLabel instead of QLabel
+        self.title_label = HoverLabel(f"DocuWeave - {self.project.name}")
         self.title_label.setObjectName("titleLabel")
         self.title_label.setFont(QFont("Segoe UI", 12))
         self.title_label.setAlignment(Qt.AlignCenter)
         self.title_label.setMaximumWidth(500)
-        self.title_label.setStyleSheet("""
-            QLabel#titleLabel {
-                background-color: transparent;
-                color: white;
-                padding: 5px;
-                border-radius: 5px;
-            }
-            QLabel#titleLabel:hover {
-                background-color: #3e3e3e;
-            }
-        """)
         self.title_label.mousePressEvent = self.show_menu
         layout.addWidget(self.title_label)
         
         layout.addStretch()
         
-        # Window controls
+        # Window controls: set objectNames for QSS-driven styling.
         min_btn = QPushButton("−")
         max_btn = QPushButton("□")
         close_btn = QPushButton("×")
-        
         for btn in (min_btn, max_btn, close_btn):
             btn.setObjectName("windowButton")
-            btn.setFixedSize(30, 30)  # Increase button size
+            btn.setFixedSize(30, 30)
             layout.addWidget(btn)
         
         min_btn.clicked.connect(self.showMinimized)
         max_btn.clicked.connect(self._toggle_maximized)
         close_btn.clicked.connect(self.close)
         
-        title_bar.setFixedHeight(50)  # Adjust height to fit larger buttons
+        title_bar.setFixedHeight(50)
         return title_bar
 
     def update_title_bar(self):
@@ -131,6 +116,7 @@ class MainWindow(QMainWindow):
     def show_menu(self, event):
         if not self.menu:
             self.menu = QMenu(self)
+            self.menu.setObjectName("titleMenuBar")  # Set object name for QSS targeting
             self._setup_menu_bar(self.menu)
         self.menu.exec_(self.mapToGlobal(event.pos()))
 
@@ -492,3 +478,9 @@ class MainWindow(QMainWindow):
             self.project.project_path = project_file
             
         return True
+
+    def eventFilter(self, obj, event):
+        from PyQt5.QtCore import QEvent
+        if obj == self.title_label and event.type() == QEvent.HoverLeave:
+            self.title_label.repaint()  # Force repaint so hover state clears
+        return super().eventFilter(obj, event)
