@@ -16,6 +16,8 @@ class EditorWidget(QWidget):
         super().__init__(parent)
         self.renderer = renderer
         self.project = project  # Store project reference
+        # Removed inline background-style; styling is applied via dark_theme.qss.
+        # self.setStyleSheet("background-color: var(--body-bg);")
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
         self.web_view = QWebEngineView()
@@ -59,51 +61,10 @@ class EditorWidget(QWidget):
     def format_text(self, command, value=None):
         # Log the applied formatting
         print("\033[94mApplying command: {} {}\033[0m".format(command, value if value else ""))
-        
-        js = f"""
-        (function(){{
-            var ed = document.getElementById('editor');
-            var sel = window.getSelection();
-            function getHeading(node){{
-                while(node && node !== ed){{
-                    if(node.nodeName.match(/^H[1-6]$/)) return node;
-                    node = node.parentNode;
-                }}
-                return null;
-            }}
-            function inList(node){{
-                while(node && node !== ed){{
-                    if(node.nodeName.match(/^(LI|UL|OL)$/)) return true;
-                    node = node.parentNode;
-                }}
-                return false;
-            }}
-            var currentHeading = getHeading(sel.anchorNode);
-            var appliedCommand = "{command}";
-            var appliedValue = {f'"{value}"' if value is not None else 'null'};
-            
-            // Prevent heading if selection is within a list
-            if(appliedCommand === 'formatBlock' && appliedValue && appliedValue.match(/<H[1-6]>/i)){{
-                if(inList(sel.anchorNode)){{
-                    console.log("Cannot add heading inside a list");
-                    return;
-                }}
-                var tag = appliedValue.replace(/[<>]/g, '').toUpperCase();
-                if(currentHeading && currentHeading.nodeName === tag){{
-                    document.execCommand('formatBlock', false, '<P>');
-                    return;
-                }}
-            }}
-            else if(currentHeading && appliedCommand !== 'formatBlock'){{
-                document.execCommand('formatBlock', false, '<P>');
-            }}
-            ed.focus();
-            if(appliedValue)
-                document.execCommand(appliedCommand, false, appliedValue);
-            else
-                document.execCommand(appliedCommand, false, null);
-        }})();
-        """
+        js = """"""
+        js_path = os.path.join(os.path.dirname(__file__), "assets", "editor_widget_formatter.js")
+        with open(js_path, "r", encoding="utf-8") as f:
+            js = f.read()
         self.web_view.page().runJavaScript(js)
 
     def set_content(self, text: str):
@@ -128,10 +89,11 @@ class EditorWidget(QWidget):
         self.enable_table_editing()
 
     def enable_table_editing(self):
-        # Load table editing JS from external file
-        js_path = os.path.join(os.path.dirname(__file__), "assets", "table_editing.js")
+        js = """"""
+        js_path = os.path.join(os.path.dirname(__file__), "assets", "editor_widget.js")
         with open(js_path, "r", encoding="utf-8") as f:
             js = f.read()
+
         self.web_view.page().runJavaScript(js)
 
     def set_document_title(self, title: str):
