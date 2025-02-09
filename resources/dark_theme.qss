@@ -36,6 +36,8 @@ QTreeView {
     background-color: #252526;
     border: none;
     font-size: 16px;
+    margin: 0;
+    padding: 0;
 }
 
 QTreeView::item {
@@ -100,8 +102,20 @@ QFrame#toolbarSeparator {
 }
 
 /* Splitter */
+QSplitter {
+    background-color: #2e2e2e;
+    border: none;
+}
+
 QSplitter::handle {
     background-color: #3d3d3d;
+    margin: 0;
+    padding: 0;
+    width: 1px;  /* Reduce handle width */
+}
+
+QSplitter::handle:hover {
+    background-color: #4d4d4d;
 }
 
 /* Scroll Bars */
@@ -129,14 +143,23 @@ QScrollBar::down-arrow:vertical {
     background-color: #1e1e1e;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
-    min-height: 50px;  // Adjust height to fit larger buttons
+    min-height: 50px;
+}
+
+#titleIcon {
+    background-color: transparent;
+    margin: 0;
+    padding: 0;
 }
 
 #titleLabel {
     background-color: transparent;
     color: white;
-    padding: 5px;
+    padding: 0 10px;
     border-radius: 5px;
+    margin: 5px;
+    min-height: 40px;
+    line-height: 40px;
 }
 
 #titleLabel:hover {
@@ -348,3 +371,14 @@ QFrame[frameShape="VLine"] {
     // Add additional variables here for every property used in editor_template.html
 }
 /* THEME_VARIABLES_END */
+
+/* Base Container */
+#baseContainer {
+    background-color: #2e2e2e;
+    border-radius: 10px;
+}
+
+#mainContainer {
+    background-color: #2e2e2e;
+    border-radius: 10px;
+}

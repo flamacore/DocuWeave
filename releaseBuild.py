@@ -93,6 +93,7 @@ VSVersionInfo(
             "pyinstaller", "--onefile", "--windowed",
             "--add-data", "ui;ui",
             "--add-data", "resources;resources",
+            "--icon", "resources/icon.ico",  # Add icon to the exe
             "app.py"
         ]
         subprocess.run(cmd, check=True)

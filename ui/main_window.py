@@ -2,7 +2,7 @@ import os  # Added import for os
 import sys  # Added import for sys.exit
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QFrame, QHBoxLayout, QMenu, QSplitter, QLabel, QApplication, QMenuBar, QShortcut
 from PyQt5.QtCore import Qt, QPoint
-from PyQt5.QtGui import QFont, QCursor, QKeySequence  # Remove QShortcut from here
+from PyQt5.QtGui import QFont, QCursor, QKeySequence, QIcon  # Remove QShortcut from here
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from core.editor import Editor
 from core.renderer import Renderer
@@ -25,6 +25,10 @@ class CustomWebEngineView(QWebEngineView):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        
+        # Set window icon
+        icon_path = os.path.join(os.path.dirname(__file__), "..", "resources", "icon.ico")
+        self.setWindowIcon(QIcon(icon_path))
         
         # Comment out the frameless + translucent settings
         self.setWindowFlags(Qt.FramelessWindowHint)
@@ -80,17 +84,25 @@ class MainWindow(QMainWindow):
         title_bar = QWidget()
         title_bar.setObjectName("titleBar")
         layout = QHBoxLayout(title_bar)
-        layout.setContentsMargins(10, 5, 10, 5)
+        layout.setSpacing(0)  # Remove spacing between elements
+        layout.setContentsMargins(10, 0, 10, 0)  # Remove vertical margins
+        
+        # Create icon for the title with transparency
+        icon = QIcon(os.path.join(os.path.dirname(__file__), "..", "resources", "icon.ico"))
+        icon_label = QLabel()
+        icon_label.setObjectName("titleIcon")
+        pixmap = icon.pixmap(16, 16)  # Smaller icon size
+        if not pixmap.isNull():
+            icon_label.setPixmap(pixmap)
+        icon_label.setFixedSize(20, 40)  # Width includes small padding
+        icon_label.setAlignment(Qt.AlignCenter)
+        icon_label.setAttribute(Qt.WA_TranslucentBackground)  # Enable transparency
+        layout.addWidget(icon_label)
+        
+        # Add spacing between icon and text
+        layout.addSpacing(4)
         
         # Use HoverLabel instead of QLabel
-        self.title_label = HoverLabel(f"DocuWeave - {self.project.name}")
-        self.title_label.setObjectName("titleLabel")
-        self.title_label.setFont(QFont("Segoe UI", 12))
-        self.title_label.setAlignment(Qt.AlignCenter)
-        self.title_label.setMaximumWidth(500)
-        self.title_label.mousePressEvent = self.show_menu
-        layout.addWidget(self.title_label)
-        
         layout.addStretch()
         
         # Window controls: set objectNames for QSS-driven styling.
@@ -121,13 +133,24 @@ class MainWindow(QMainWindow):
         self.menu.exec_(self.mapToGlobal(event.pos()))
 
     def init_ui(self):
+        # Create a base container that will hold everything
+        self.base_container = QWidget()
+        self.base_container.setObjectName("baseContainer")
+        base_layout = QVBoxLayout(self.base_container)
+        base_layout.setContentsMargins(1, 1, 1, 1)  # 1px padding all around
+        base_layout.setSpacing(0)
+        
+        # Create the main central widget
         central_widget = QWidget()
-        central_widget.setMouseTracking(True)  # Enable mouse tracking
-        self.setCentralWidget(central_widget)
+        central_widget.setObjectName("mainContainer")
+        central_widget.setMouseTracking(True)
+        base_layout.addWidget(central_widget)
+        self.setCentralWidget(self.base_container)
+        
         main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
         
-        # Add title bar at the top
+        # Rest of the UI initialization...
         title_bar = self.create_title_bar()
         main_layout.addWidget(title_bar)
         
@@ -135,6 +158,8 @@ class MainWindow(QMainWindow):
         content = QWidget()
         content.setMouseTracking(True)
         content_layout = QHBoxLayout(content)
+        content_layout.setContentsMargins(0, 0, 0, 0)  # Remove all margins
+        content_layout.setSpacing(0)  # Remove spacing between widgets
         main_layout.addWidget(content)
 
         # Add project sidebar
@@ -143,6 +168,8 @@ class MainWindow(QMainWindow):
 
         # Create splitter for sidebar and editor
         splitter = QSplitter(Qt.Horizontal)
+        splitter.setHandleWidth(1)  # Minimum handle width
+        splitter.setChildrenCollapsible(False)  # Prevent collapsing
         splitter.addWidget(self.sidebar)
         
         # Editor container
