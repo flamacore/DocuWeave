@@ -368,7 +368,7 @@ QFrame[frameShape="VLine"] {
     --info-box-header-padding-bottom: 5px;
     --info-box-header-margin-bottom: 5px;
     
-    // Add additional variables here for every property used in editor_template.html
+    --theme-link-color: #66b3ff;  /* Light blue that works well on dark backgrounds */
 }
 /* THEME_VARIABLES_END */
 

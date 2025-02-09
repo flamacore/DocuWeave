@@ -5,9 +5,42 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QFrame, QVBoxLayout, QWidget
 from PyQt5.QtCore import pyqtSignal, Qt, QUrl  # added QUrl import
 from PyQt5.QtWebChannel import QWebChannel
-from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineView
+from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineView, QWebEnginePage
+from PyQt5.QtGui import QDesktopServices
 from ui.custom_webview import CustomWebEngineView
 from ui.js_bridge import JavaScriptBridge
+
+class CustomWebEnginePage(QWebEnginePage):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add JavaScript to handle link clicks
+        self.loadFinished.connect(self._add_link_handler)
+
+    def _add_link_handler(self, ok):
+        if ok:
+            js = """
+            document.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    e.preventDefault();
+                    window.location.href = e.target.href;
+                }
+            });
+            """
+            self.runJavaScript(js)
+
+    def acceptNavigationRequest(self, url, _type, isMainFrame):
+        
+        # Allow data URLs and internal resources
+        if url.scheme() in ['data', 'qrc']:
+            return True
+        
+        # Handle external URLs
+        if url.scheme() in ['http', 'https']:
+            print(f"Opening in system browser: {url.toString()}")
+            QDesktopServices.openUrl(url)
+            return False
+            
+        return True
 
 class EditorWidget(QWidget):
     text_changed = pyqtSignal(str)  # Rename signal to avoid collision
@@ -21,6 +54,8 @@ class EditorWidget(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
         self.web_view = QWebEngineView()
+        page = CustomWebEnginePage(self.web_view)
+        self.web_view.setPage(page)
         self.web_view.setContextMenuPolicy(Qt.PreventContextMenu)
         self.web_view.setFocusPolicy(Qt.StrongFocus)
         layout.addWidget(self.web_view, stretch=1)  # Add stretch factor
@@ -80,6 +115,15 @@ class EditorWidget(QWidget):
             final_html = self.html_template.format(content=content_html, theme_vars=theme_vars)
         else:
             final_html = self.html_template.format(content=content_html)
+        # Inject CSS to style links using the theme variable
+        link_style = ("<style> "
+                      "a { "
+                      "color: var(--theme-link-color) !important; "
+                      "text-decoration: underline; "
+                      "cursor: pointer; "
+                      "} "
+                      "</style>")
+        final_html = link_style + final_html
         if self.project.project_path:
             project_folder = os.path.splitext(self.project.project_path)[0]
             base_url = QUrl.fromLocalFile(project_folder + os.sep)
