@@ -102,7 +102,14 @@ class MainWindow(QMainWindow):
         # Add spacing between icon and text
         layout.addSpacing(4)
         
-        # Use HoverLabel instead of QLabel
+        # Add title label
+        self.title_label = HoverLabel(f"DocuWeave - {self.project.name}")
+        self.title_label.setObjectName("titleLabel")
+        self.title_label.setFont(QFont("Segoe UI", 12))
+        self.title_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.title_label.mousePressEvent = self.show_menu
+        layout.addWidget(self.title_label)
+        
         layout.addStretch()
         
         # Window controls: set objectNames for QSS-driven styling.
