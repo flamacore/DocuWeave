@@ -154,7 +154,17 @@ class EditorWidget(QWidget):
         self.enable_table_editing()
 
     def enable_table_editing(self):
-        js = """"""
+        js_path = os.path.join(os.path.dirname(__file__), "assets", "table_editing.js")
+        with open(js_path, "r", encoding="utf-8") as f:
+            js = f.read()
+        self.web_view.page().runJavaScript(js)
+
+    def add_image_to_project(self, file_path):
+        """Copy image to project's image directory and return relative path"""
+        try:
+            if self.project.project_path:
+                # Get the project folder (where documents are stored)
+                project_folder = os.path.splitext(self.project.project_path)[0]
                 print(f"\033[94mProject folder path: {project_folder}\033[0m")
                 
                 # Create images subfolder within the project documents folder
@@ -169,7 +179,7 @@ class EditorWidget(QWidget):
                 print(f"\033[94mCopying image from {file_path} to {new_path}\033[0m")
                 shutil.copy2(file_path, new_path)
                 
-                # Generate and log the relative path - use forward slashes for web URLs
+                # Generate and log the relative path - use forward slashes for web paths
                 rel_path = f"images/{new_name}"  # Always use forward slashes for web paths
                 print(f"\033[92mReturning relative image path: {rel_path}\033[0m")
                 return rel_path
