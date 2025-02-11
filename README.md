@@ -2,8 +2,6 @@
 
 DocuWeave is a lightweight WYSIWYG Markdown Editor built with PyQt5. It offers a modern interface, dynamic theming, and streamlined project management to simplify your document editing experience.
 
-
-
 <img width="920" alt="python_PowlkiOfZx" src="https://github.com/user-attachments/assets/627d0215-ee8c-4c3b-87ec-92b31c4becf7" />
 
 https://www.docuweave.website also exists
@@ -24,6 +22,7 @@ Welcome to the **Tech Alpha Release** of DocuWeave. This release incorporates se
   - New toolbar icons and a refined layout.
   - Table insertion support for richer content.
   - Real-time preview updates with a responsive editing interface.
+  - Improved emoji support with SVG-based emoji picker and better rendering.
 
 - **Performance & Stability**  
   Optimizations across the board result in quicker startup times, more efficient resource usage, and better overall responsiveness.
@@ -64,8 +63,13 @@ Your feedback is invaluable! As we continue to refine this alpha release, please
 - **/resources/**
   - Contains SVG icons, the app icon, and theming in `dark_theme.qss`.
 
+## Development
+
+DocuWeave is developed with assistance from GitHub Copilot, leveraging various AI models and agents to enhance code quality and feature implementation. This collaborative approach between human developers and AI assistance has helped create a more robust and feature-rich application while maintaining clean code practices.
+
 ---
 
 Happy editing and thank you for testing DocuWeave Tech Alpha!
 
 *Uicons by [Flaticon](https://www.flaticon.com/uicons)*
+*Emojis by [Twitter Emoji (Twemoji)](https://github.com/twitter/twemoji)*

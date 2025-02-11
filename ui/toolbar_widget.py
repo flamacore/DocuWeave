@@ -2,9 +2,10 @@ import sys
 import os
 from PyQt5.QtWidgets import QFrame, QHBoxLayout, QPushButton, QFileDialog, QMessageBox, QMainWindow, QInputDialog  # Added QInputDialog
 from PyQt5.QtGui import QIcon, QPixmap, QPainter, QColor, QTransform
-from PyQt5.QtCore import Qt, QSize, QEvent, QRectF  # Added QRectF
+from PyQt5.QtCore import Qt, QSize, QEvent, QRectF, QUrl  # Added QUrl
 from PyQt5.QtSvg import QSvgRenderer
 from ui.image_dialog import ImageDialog
+from ui.emoji_selector import EmojiSelector  # New import
 
 # Add helper to get resource path in bundle or during development
 def get_resource_path(relative_path):
@@ -231,7 +232,7 @@ class ToolbarWidget(QFrame):
         emoji_button.setIcon(getColoredIcon(get_resource_path("resources/emoji.svg")))
         emoji_button.setIconSize(QSize(28,28))
         emoji_button.setToolTip("Insert Emoji")
-        emoji_button.clicked.connect(self.insert_emoji)
+        emoji_button.clicked.connect(self.show_emoji_selector)
         layout.addWidget(emoji_button)
         
         link_button = ToolbarButton()
@@ -321,12 +322,29 @@ class ToolbarWidget(QFrame):
         if ok and url:
             self.editor_widget.format_text('createLink', url)
 
-    def insert_emoji(self):
-        from PyQt5.QtWidgets import QInputDialog
-        emoji, ok = QInputDialog.getText(self, "Insert Emoji", "Enter Emoji:")
-        if ok and emoji:
-            js = f"document.execCommand('insertText', false, '{emoji}');"
-            self.editor_widget.web_view.page().runJavaScript(js)
+    def show_emoji_selector(self):
+        selector = EmojiSelector(self)
+        selector.emojiSelected.connect(self.insert_emoji)
+        selector.exec_()
+    
+    def insert_emoji(self, url):
+        """Insert emoji at cursor position, handling both local SVG files and remote URLs."""
+        if os.path.exists(url):
+            # Make sure path separator is forward slash for URLs
+            url = url.replace('\\', '/')
+            if not url.startswith('/'):
+                url = '/' + url
+            url = 'file://' + url
+            
+        js = (
+            "document.execCommand('insertHTML', false, "
+            "'<object type=\"image/svg+xml\" data=\"{url}\" " 
+            "style=\"width:24px; height:24px; vertical-align: middle;\">" 
+            "<img src=\"{url}\" alt=\"emoji\" "
+            "style=\"width:24px; height:24px; vertical-align: middle;\"/>"
+            "</object>')"
+        ).format(url=url)
+        self.editor_widget.web_view.page().runJavaScript(js)
 
     def insert_table_dialog(self):
         from PyQt5.QtWidgets import QMainWindow, QMessageBox
