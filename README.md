@@ -53,15 +53,33 @@ Your feedback is invaluable! As we continue to refine this alpha release, please
 ## Repository Structure
 
 - **/core/**
-  - `renderer.py`: Handles markdown to HTML conversion and manages theme variables.
-  - `project.py`: Manages project file handling, saving, and loading of documents.
+  - `controller.py`: Manages interactions between editor and renderer components.
+  - `editor.py`: Core document editing functionality.
+  - `project.py`: Manages project files, documents, and workspace organization.
+  - `renderer.py`: Handles HTML rendering and theme management.
+
 - **/ui/**
-  - `editor_widget.py`: Implements the WYSIWYG editor.
-  - `editor_template.html`: HTML template with dynamic placeholders.
-  - `toolbar_widget.py`: Contains utilities for managing toolbar icons.
-  - `main_window.py`: Sets up the main application window with custom title bar and context menus.
+  - `editor_widget.py`: WYSIWYG editor implementation with real-time preview.
+  - `toolbar_widget.py`: Rich text formatting toolbar with customizable actions.
+  - `main_window.py`: Modern window management with custom title bar.
+  - `project_sidebar.py`: Document tree and project navigation.
+  - `emoji_selector.py`: SVG-based emoji picker with local caching.
+  - `table_dialog.py`: Table insertion interface.
+  - `image_dialog.py`: Image upload and URL insertion dialog.
+  - `startup_dialog.py`: Initial project creation/loading interface.
+  - **assets/**
+    - Editor templates and JavaScript utilities.
+
 - **/resources/**
-  - Contains SVG icons, the app icon, and theming in `dark_theme.qss`.
+  - SVG icons for toolbar and UI elements.
+  - Dark theme styling in `dark_theme.qss`.
+  - Application icon and branding assets.
+
+- **/build/**
+  - Build artifacts and distribution files.
+
+- **/release_files/**
+  - Release documentation and changelogs.
 
 ## Development
 
@@ -73,3 +91,4 @@ Happy editing and thank you for testing DocuWeave Tech Alpha!
 
 *Uicons by [Flaticon](https://www.flaticon.com/uicons)*
 *Emojis by [Twitter Emoji (Twemoji)](https://github.com/twitter/twemoji)*
+````

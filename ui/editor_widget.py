@@ -115,46 +115,46 @@ class EditorWidget(QWidget):
             final_html = self.html_template.format(content=content_html, theme_vars=theme_vars)
         else:
             final_html = self.html_template.format(content=content_html)
-        # Inject CSS to style links using the theme variable
-        link_style = ("<style> "
-                      "a { "
-                      "color: var(--theme-link-color) !important; "
-                      "text-decoration: underline; "
-                      "cursor: pointer; "
-                      "} "
-                      "</style>")
-        final_html = link_style + final_html
+        
+        # Inject CSS to style links and fix local file access
+        styles = """
+        <style>
+        a { color: var(--theme-link-color) !important; text-decoration: underline; cursor: pointer; }
+        @font-face { font-family: 'emoji'; src: local('Apple Color Emoji'), local('Segoe UI Emoji'); }
+        img[alt="emoji"] { font-family: 'emoji'; }
+        </style>
+        <script>
+        // Enable local file access for images
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options) {
+            if (url.startsWith('file://')) {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.src = url;
+                    resolve(new Response(img));
+                });
+            }
+            return originalFetch(url, options);
+        };
+        </script>
+        """
+        final_html = styles + final_html
+        
         if self.project.project_path:
             project_folder = os.path.splitext(self.project.project_path)[0]
             base_url = QUrl.fromLocalFile(project_folder + os.sep)
         else:
             base_url = QUrl()
+        
+        settings = self.web_view.settings()
+        settings.setAttribute(QWebEngineSettings.LocalContentCanAccessFileUrls, True)
+        settings.setAttribute(QWebEngineSettings.AllowRunningInsecureContent, True)
+        
         self.web_view.setHtml(final_html, base_url)
         self.enable_table_editing()
 
     def enable_table_editing(self):
         js = """"""
-        js_path = os.path.join(os.path.dirname(__file__), "assets", "editor_widget.js")
-        with open(js_path, "r", encoding="utf-8") as f:
-            js = f.read()
-
-        self.web_view.page().runJavaScript(js)
-
-    def set_document_title(self, title: str):
-        # Title no longer shown; no action needed.
-        pass
-
-    def get_content(self):
-        code = "document.getElementById('editor').innerHTML;"
-        # Return content asynchronously in a real scenario
-        return code
-
-    def add_image_to_project(self, file_path):
-        """Copy image to project's image directory and return relative path"""
-        try:
-            if self.project.project_path:
-                # Get the project folder (where documents are stored)
-                project_folder = os.path.splitext(self.project.project_path)[0]
                 print(f"\033[94mProject folder path: {project_folder}\033[0m")
                 
                 # Create images subfolder within the project documents folder
