@@ -171,3 +171,4 @@ cython_debug/
 .pypirc
 TESTS/*
 release_files/*
+DocuWeave.pfx

@@ -12,6 +12,9 @@ Welcome to the **Tech Alpha Release** of DocuWeave. This release incorporates se
 
 ### What's New?
 
+- **Enhanced Security & Trust**  
+  Code signed Windows executables ensure authenticity and eliminate security warnings.
+
 - **High DPI and Scaling**  
   Improved support for high-resolution displays ensures that all UI elements render crisply.
 
@@ -85,10 +88,31 @@ Your feedback is invaluable! As we continue to refine this alpha release, please
 
 DocuWeave is developed with assistance from GitHub Copilot, leveraging various AI models and agents to enhance code quality and feature implementation. This collaborative approach between human developers and AI assistance has helped create a more robust and feature-rich application while maintaining clean code practices.
 
+### Building from Source
+
+To build a signed executable:
+
+1. Generate a self-signed certificate (PowerShell):
+   ```powershell
+   New-SelfSignedCertificate -Type Custom -Subject "CN=DocuWeave" -KeyUsage DigitalSignature -FriendlyName "DocuWeave" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+   ```
+
+2. Export the certificate to PFX:
+   ```powershell
+   $pwd = ConvertTo-SecureString -String "YourPassword" -Force -AsPlainText
+   Get-ChildItem -Path "Cert:\CurrentUser\My\YOUR_CERT_THUMBPRINT" | Export-PfxCertificate -FilePath DocuWeave.pfx -Password $pwd
+   ```
+
+3. Run the release build:
+   ```
+   python releaseBuild.py
+   ```
+
+The build script will automatically handle version increments, signing, and packaging.
+
 ---
 
 Happy editing and thank you for testing DocuWeave Tech Alpha!
 
 *Uicons by [Flaticon](https://www.flaticon.com/uicons)*
 *Emojis by [Twitter Emoji (Twemoji)](https://github.com/twitter/twemoji)*
-````
