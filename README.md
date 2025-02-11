@@ -2,7 +2,7 @@
 
 DocuWeave is a lightweight WYSIWYG Markdown Editor built with PyQt5. It offers a modern interface, dynamic theming, and streamlined project management to simplify your document editing experience.
 
-<img width="920" alt="python_PowlkiOfZx" src="https://github.com/user-attachments/assets/627d0215-ee8c-4c3b-87ec-92b31c4becf7" />
+![image](https://github.com/user-attachments/assets/ff0d8af5-ee8a-4c5d-bbb0-719cf93d7725)
 
 https://www.docuweave.website also exists
 
