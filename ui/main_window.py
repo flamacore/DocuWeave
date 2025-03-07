@@ -1,6 +1,6 @@
 import os  # Added import for os
 import sys  # Added import for sys.exit
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QFrame, QHBoxLayout, QMenu, QSplitter, QLabel, QApplication, QMenuBar, QShortcut
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QFrame, QHBoxLayout, QMenu, QSplitter, QLabel, QApplication, QMenuBar, QShortcut, QInputDialog
 from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtGui import QFont, QCursor, QKeySequence, QIcon  # Remove QShortcut from here
 from PyQt5.QtWebEngineWidgets import QWebEngineView
@@ -76,7 +76,7 @@ class MainWindow(QMainWindow):
         self.show_startup_dialog()
         
         # Only create a new document if none already exist
-        if not self.project.documents:
+        if not self.get_document_count():
             self.create_new_document()
 
     def create_title_bar(self):
@@ -171,7 +171,8 @@ class MainWindow(QMainWindow):
 
         # Add project sidebar
         self.sidebar = ProjectSidebar()
-        self.sidebar.file_selected.connect(self.change_document)
+        # Use the item_selected signal to handle document selection
+        self.sidebar.item_selected.connect(self.change_document)
 
         # Create splitter for sidebar and editor
         splitter = QSplitter(Qt.Horizontal)
@@ -213,50 +214,107 @@ class MainWindow(QMainWindow):
         splitter.setStretchFactor(1, 4)  # Make editor area wider
         content_layout.addWidget(splitter)
 
-        # Add menu bar with project actions
-        
         # Connect signals for real-time updates and document management
-        self.sidebar.new_file_requested.connect(self.create_new_document)
-        self.sidebar.file_deleted.connect(self.delete_document)
-        self.sidebar.file_renamed.connect(self.rename_document)
-        self.editor_widget.text_changed.connect(self.update_current_document)  # Use renamed signal
+        self.sidebar.new_document_requested.connect(self.create_new_document_in_parent)
+        self.sidebar.document_created.connect(self.create_document)
+        self.sidebar.document_deleted.connect(self.delete_document)
+        self.sidebar.document_renamed.connect(self.rename_document)
+        self.editor_widget.text_changed.connect(self.update_current_content)
         
         # Remove save button as we're doing real-time saves
         button_frame.setVisible(False)
 
-    def _save_current_document(self, callback=None):
+    def get_document_count(self):
+        """Get the total number of documents in the project"""
+        return len(self.project.get_all_documents())
+
+    def _save_current_content(self, callback=None):
         """Save current document content; then call callback."""
-        if self.project.current_file:
+        if self.project.current_document:
             self.editor_widget.web_view.page().runJavaScript(
                 "document.getElementById('editor').innerHTML;",
-                lambda content: (self.project.update_document(self.project.current_file, content), callback() if callback else None)
+                lambda content: (self.project.update_content(self.project.current_document, content), 
+                                callback() if callback else None)
             )
         else:
             if callback:
                 callback()
 
-    def change_document(self, new_path):
+    def change_document(self, document_path):
         """Switch to a different document: save current, clear editor, then load new content."""
-        if new_path == self.project.current_file:
+        if document_path == self.project.current_document:
             return  # No need to save/reload if same document is clicked
+            
         def load_new():
             self.editor_widget.set_content("")
-            if new_path in self.project.documents:
-                new_content = self.project.get_document(new_path)
-                self.editor_widget.set_content(new_content)
-                self.project.current_file = new_path
+            content = self.project.get_content(document_path)
+            
+            if content is not None:
+                self.editor_widget.set_content(content)
+                self.project.current_document = document_path
+                
+                # Update window title to include the current document name
+                name = document_path.split('/')[-1] if document_path else "Root"
+                has_children = self.project.has_children(document_path)
+                document_type = "Container" if has_children else "Document"
+                self.title_label.setText(f"DocuWeave - {self.project.name} - {name} ({document_type})")
             else:
+                # If content not found, create a new document
                 self.create_new_document()
-        self._save_current_document(load_new)
+                
+        self._save_current_content(load_new)
 
-    def create_new_document(self):
+    def create_new_document(self, parent_path=""):
         """Save current document, then create a new untitled document and open it."""
         def after_save():
-            new_doc_id = self.project.create_untitled_document()
-            self.sidebar.update_tree(self.project.documents)
-            self.editor_widget.set_content("")
-            self.project.current_file = new_doc_id
-        self._save_current_document(after_save)
+            try:
+                new_doc_path = self.project.create_untitled_document(parent_path)
+                self.sidebar.update_tree(self.project)
+                self.editor_widget.set_content("")
+                self.project.current_document = new_doc_path
+                
+                # Update window title
+                name = new_doc_path.split('/')[-1]
+                self.title_label.setText(f"DocuWeave - {self.project.name} - {name} (Document)")
+            except Exception as e:
+                print(f"Error creating new document: {e}")
+        self._save_current_content(after_save)
+
+    def create_new_document_in_parent(self, parent_path):
+        """Create a new document in the specified parent document"""
+        # Show dialog to get document name
+        doc_name, ok = QInputDialog.getText(self, "New Document", "Document name:")
+        if not ok or not doc_name:
+            return
+            
+        def after_save():
+            try:
+                # Create document with the user-specified name
+                new_doc_path = self.project.create_document(doc_name, "", parent_path)
+                self.sidebar.update_tree(self.project)
+                self.editor_widget.set_content("")
+                self.project.current_document = new_doc_path
+                
+                # Update window title
+                self.title_label.setText(f"DocuWeave - {self.project.name} - {doc_name} (Document)")
+            except Exception as e:
+                print(f"Error creating new document: {e}")
+        self._save_current_content(after_save)
+
+    def create_document(self, parent_path, document_name):
+        """Create a new document with specified name at the parent path"""
+        try:
+            doc_path = self.project.create_document(document_name, "", parent_path)
+            self.sidebar.update_tree(self.project)
+            
+            # Auto-save project to persist document structure
+            if self.project.project_path:
+                self.project.save_project(self.project.project_path)
+                
+            # Switch to the new document automatically
+            self.change_document(doc_path)
+        except Exception as e:
+            print(f"Error creating document: {e}")
 
     def _setup_menu_bar(self, menu):
         """Setup menu bar items"""
@@ -264,7 +322,11 @@ class MainWindow(QMainWindow):
         
         new_doc = file_menu.addAction('New Document')
         new_doc.setShortcut('Ctrl+N')
-        new_doc.triggered.connect(self.create_new_document)
+        new_doc.triggered.connect(lambda: self.create_new_document())
+        
+        # Change "New Folder" to "New Container Document"
+        new_container = file_menu.addAction('New Container Document')
+        new_container.triggered.connect(lambda: self.create_document("", "New Container"))
         
         new_project = file_menu.addAction('New Project')
         new_project.triggered.connect(self.new_project)
@@ -280,12 +342,12 @@ class MainWindow(QMainWindow):
 
     def save_markdown(self):
         """Update current document in project"""
-        if self.project.current_file:
+        if self.project.current_document:
             self.editor_widget.web_view.page().runJavaScript(
                 "document.getElementById('editor').innerHTML;",
                 lambda content: self._handle_document_save(content)
             )
-            self.sidebar.update_tree(self.project.documents)
+            self.sidebar.update_tree(self.project)
 
     def _handle_save(self, html_content, file_name):
         with open(file_name, 'w', encoding='utf-8') as file:
@@ -295,7 +357,7 @@ class MainWindow(QMainWindow):
     def new_project(self):
         self.project = Project()
         self.project.name = "Untitled Project"
-        self.sidebar.update_tree(self.project.documents)
+        self.sidebar.update_tree(self.project)
         self.editor_widget.set_content("")
         self.editor_widget.project = self.project
         self.toolbar_widget.editor_widget = self.editor_widget
@@ -316,22 +378,21 @@ class MainWindow(QMainWindow):
         if file_path:
             try:
                 self.project.load_project(file_path)
-                self.sidebar.update_tree(self.project.documents)
+                self.sidebar.update_tree(self.project)
                 self.editor_widget.project = self.project
                 self.toolbar_widget.editor_widget = self.editor_widget
                 self.update_title_bar()  # Update title bar after project load
                 
                 # Load the current document if specified in project
-                if self.project.current_file and self.project.current_file in self.project.documents:
-                    content = self.project.get_document(self.project.current_file)
-                    self.editor_widget.set_content(content)
-                # If no current file but documents exist, load the first one
-                elif self.project.documents:
-                    first_doc = next(iter(self.project.documents))
-                    self.project.current_file = first_doc
-                    content = self.project.get_document(first_doc)
-                    self.editor_widget.set_content(content)
+                if self.project.current_document:
+                    content = self.project.get_document(self.project.current_document)
+                    if content is not None:
+                        self.editor_widget.set_content(content)
+                    else:
+                        # Create a new document if current one is not found
+                        self.create_new_document()
                 else:
+                    # If no current file but documents exist, create a new one
                     self.create_new_document()
                 return True
             except Exception as e:
@@ -363,8 +424,8 @@ class MainWindow(QMainWindow):
         try:
             # Update current document content before saving
             def after_content_save(content):
-                if self.project.current_file:
-                    self.project.update_document(self.project.current_file, content)
+                if self.project.current_document:
+                    self.project.update_content(self.project.current_document, content)
                 print(f"\033[94mBefore save_project, project_path: {self.project.project_path}\033[0m")
                 self.project.save_project(self.project.project_path)
                 print(f"\033[94mAfter save_project, project_path: {self.project.project_path}\033[0m")
@@ -373,7 +434,7 @@ class MainWindow(QMainWindow):
                 if callback:
                     callback()
 
-            if self.project.current_file:
+            if self.project.current_document:
                 self.editor_widget.web_view.page().runJavaScript(
                     "document.getElementById('editor').innerHTML;",
                     after_content_save
@@ -391,40 +452,53 @@ class MainWindow(QMainWindow):
             return False
 
     def _handle_document_save(self, content):
-        if self.project.current_file:
-            self.project.update_document(self.project.current_file, content)
+        if self.project.current_document:
+            self.project.update_document(self.project.current_document, content)
 
-    def update_current_document(self, content):
-        """Real-time update of document content"""
-        if self.project.current_file:
-            self.project.update_document(self.project.current_file, content)
-            # Remove auto-save from here to avoid blocking UI:
+    def update_current_content(self, content):
+        """Real-time update of current document content"""
+        if self.project.current_document:
+            self.project.update_content(self.project.current_document, content)
+            # Auto-save to persist changes
             if self.project.project_path:
                  self.project.save_project(self.project.project_path)
 
-    def delete_document(self, doc_id):
-        if (doc_id in self.project.documents):
-            self.project.remove_document(doc_id)
-            self.sidebar.update_tree(self.project.documents)
-            # Create new document if we deleted the last one
-            if not self.project.documents:
-                self.create_new_document()
-            elif self.project.current_file:
-                self.change_document(self.project.current_file)
+    def delete_document(self, doc_path):
+        """Delete a document by its path"""
+        if self.project.remove_document(doc_path):
+            self.sidebar.update_tree(self.project)
+            
+            # If current document was deleted, load a new one
+            if not self.project.current_document:
+                # Find another document to load
+                if self.get_document_count() > 0:
+                    # The project implementation should have already selected another document
+                    if self.project.current_document:
+                        self.change_document(self.project.current_document)
+                else:
+                    # No documents left, create a new one
+                    self.create_new_document()
+                    
+            # Autosave to persist changes
+            if self.project.project_path:
+                self.project.save_project(self.project.project_path)
 
-    def rename_document(self, old_name: str, new_name: str):
+    def rename_document(self, old_path: str, new_path: str):
         """Handle document rename requests"""
-        print(f"MainWindow received rename request: {old_name} -> {new_name}")  # Debug log
+        print(f"MainWindow received document rename request: {old_path} -> {new_path}")  # Debug log
         
-        if self.project.rename_document(old_name, new_name):
-            print("Rename successful in project")  # Debug log
-            # Don't update tree here - it will reset the editing state
+        if self.project.rename_document(old_path, new_path):
+            print("Document rename successful in project")  # Debug log
+            # Update tree view
+            self.sidebar.update_tree(self.project)
+            
+            # Auto-save project if path exists
             if self.project.project_path:
                 self.project.save_project(self.project.project_path)
         else:
-            print("Rename failed in project")  # Debug log
-            # Only update tree if rename failed
-            self.sidebar.update_tree(self.project.documents)
+            print("Document rename failed in project")  # Debug log
+            # Update tree to restore previous state
+            self.sidebar.update_tree(self.project)
 
     def mousePressEvent(self, event):
         pos = event.pos()

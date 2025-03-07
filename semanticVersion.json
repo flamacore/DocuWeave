@@ -1,9 +1,9 @@
 {
     "major": 0,
     "minor": 1,
-    "patch": 7,
+    "patch": 8,
     "prerelease": "tech-alpha",
-    "build": 19,
+    "build": 20,
     "name": "DocuWeave",
     "description": "Modern WYSIWYG Markdown Editor",
     "author": "\u00c3\u2021a\u00c4\u0178layan Karag\u00c3\u00b6zler",

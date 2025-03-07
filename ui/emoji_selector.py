@@ -1,11 +1,10 @@
-import sys
+import os
 from PyQt5.QtWidgets import QDialog, QGridLayout, QPushButton, QLabel, QFrame
 from PyQt5.QtCore import pyqtSignal, Qt, QByteArray
 from PyQt5.QtGui import QPixmap, QIcon, QPainter
 from PyQt5.QtSvg import QSvgRenderer
-import requests
 from pathlib import Path
-import os
+import requests
 
 class EmojiSelector(QDialog):
     emojiSelected = pyqtSignal(str)
@@ -49,9 +48,9 @@ class EmojiSelector(QDialog):
             btn.setFixedSize(48, 48)
             
             # Try to load from cache first
+            pixmap = QPixmap(48, 48)
             if cache_path.exists():
                 renderer = QSvgRenderer(str(cache_path))
-                pixmap = QPixmap(48, 48)
                 pixmap.fill(Qt.transparent)
                 painter = QPainter(pixmap)
                 renderer.render(painter)
@@ -63,7 +62,6 @@ class EmojiSelector(QDialog):
                         # Save to cache
                         cache_path.write_bytes(resp.content)
                         renderer = QSvgRenderer(QByteArray(resp.content))
-                        pixmap = QPixmap(48, 48)
                         pixmap.fill(Qt.transparent)
                         painter = QPainter(pixmap)
                         renderer.render(painter)
