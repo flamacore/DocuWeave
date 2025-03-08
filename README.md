@@ -21,6 +21,12 @@ Welcome to the **Tech Alpha Release** of DocuWeave. This release incorporates se
 - **Enhanced Project Management**  
   Experience faster loading, saving, and renaming of projects with robust file handling and auto-cleanup of orphaned files.
 
+- **Document Hierarchy & Linking**  
+  - Create nested document structures with parent-child relationships
+  - Internal document linking with automatic path updates when documents are renamed
+  - Improved navigation between related documents
+  - Automatic sidebar selection when following document links
+
 - **Revamped Editing Experience**  
   - New toolbar icons and a refined layout.
   - Table insertion support for richer content.
@@ -29,6 +35,19 @@ Welcome to the **Tech Alpha Release** of DocuWeave. This release incorporates se
 
 - **Performance & Stability**  
   Optimizations across the board result in quicker startup times, more efficient resource usage, and better overall responsiveness.
+
+## Features
+
+- **WYSIWYG Editor:** Edit rich text with formatting, tables, images, and more
+- **Document Hierarchy:** Organize your content with nested document structure
+- **Internal Links:** Create links between documents that update automatically when documents are renamed
+- **Modern UI:** Dark theme interface with intuitive controls
+- **Real-time Formatting:** Format text as you type with the formatting toolbar
+- **Project Management:** Save and organize your documents in project files
+- **Emoji Support:** Insert emoji from a built-in picker
+- **Table Support:** Create and edit tables within your documents
+- **Info Boxes:** Add highlighted information boxes for important notes
+- **Responsive Layout:** Works well on different screen sizes and resolutions
 
 ## Getting Started
 
@@ -69,6 +88,9 @@ Your feedback is invaluable! As we continue to refine this alpha release, please
   - `emoji_selector.py`: SVG-based emoji picker with local caching.
   - `table_dialog.py`: Table insertion interface.
   - `image_dialog.py`: Image upload and URL insertion dialog.
+  - `link_type_dialog.py`: Dialog for selecting between external and internal links.
+  - `external_link_dialog.py`: Dialog for creating external links.
+  - `internal_link_dialog.py`: Dialog for creating internal document links.
   - `startup_dialog.py`: Initial project creation/loading interface.
   - **assets/**
     - Editor templates and JavaScript utilities.
