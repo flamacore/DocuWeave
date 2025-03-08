@@ -317,10 +317,100 @@ class ToolbarWidget(QFrame):
                     self.editor_widget.insert_image(url)
 
     def insert_link(self):
-        from PyQt5.QtWidgets import QInputDialog
-        url, ok = QInputDialog.getText(self, "Insert Link", "Enter URL:")
-        if ok and url:
-            self.editor_widget.format_text('createLink', url)
+        """Show dialog for inserting a link"""
+        from ui.link_type_dialog import LinkTypeDialog
+        from ui.external_link_dialog import ExternalLinkDialog
+        from PyQt5.QtCore import Qt
+        
+        # Show link type dialog first
+        link_type_dialog = LinkTypeDialog(self)
+        link_type_dialog.setWindowModality(Qt.ApplicationModal)
+        
+        if not link_type_dialog.exec_():
+            return  # User cancelled
+            
+        link_type = link_type_dialog.get_selected_type()
+        
+        if link_type == "external":
+            # Show external URL dialog
+            external_dialog = ExternalLinkDialog(self)
+            external_dialog.setWindowModality(Qt.ApplicationModal)
+            
+            if external_dialog.exec_():
+                url = external_dialog.get_url()
+                if url:
+                    self.editor_widget.format_text('createLink', url)
+        else:
+            # Internal document link
+            # First check if project is saved
+            if not self.editor_widget.project.project_path:
+                main_window = None
+                widget = self
+                while widget and not isinstance(widget, QMainWindow):
+                    widget = widget.parent()
+                main_window = widget
+                
+                if main_window:
+                    def after_save():
+                        if self.editor_widget.project.project_path:
+                            self._show_internal_link_dialog()
+                    main_window.save_project(after_save)
+                return
+                
+            self._show_internal_link_dialog()
+                
+    def _show_internal_link_dialog(self):
+        """Show dialog for selecting internal document to link to"""
+        from ui.internal_link_dialog import InternalLinkDialog
+        from PyQt5.QtCore import Qt
+        
+        dialog = InternalLinkDialog(self.editor_widget.project, self)
+        dialog.setWindowModality(Qt.ApplicationModal)
+        
+        if dialog.exec_():
+            doc_path = dialog.get_selected_path()
+            if doc_path:
+                # Create a special URL scheme for internal document links
+                internal_url = f"docuweave://document/{doc_path}"
+                
+                # Get display text (either selected text or document name)
+                display_name = doc_path.split('/')[-1]  # Use document name by default
+                self.editor_widget.web_view.page().runJavaScript(
+                    "window.getSelection().toString();",
+                    lambda selected_text: self._create_link(internal_url, selected_text or display_name)
+                )
+                
+    def _create_link(self, url, display_text=None):
+        """Create a link with optional display text"""
+        # Make sure the URL is properly encoded for special characters
+        from urllib.parse import quote
+        
+        # Only encode the path part if it's an internal document link
+        if url.startswith('docuweave://document/'):
+            prefix = 'docuweave://document/'
+            path = url[len(prefix):]
+            encoded_path = quote(path)
+            url = prefix + encoded_path
+            
+        if display_text:
+            # Create link with specific text
+            js = f"""
+            (function() {{
+                var selection = window.getSelection();
+                if (selection.toString().trim() === '') {{
+                    // No selection, insert new link with display text
+                    document.execCommand('insertHTML', false, '<a href="{url}">{display_text}</a>');
+                }} else {{
+                    // Use selection
+                    document.execCommand('createLink', false, '{url}');
+                }}
+            }})();
+            """
+        else:
+            # Simply create link from selection
+            js = f"document.execCommand('createLink', false, '{url}');"
+        
+        self.editor_widget.web_view.page().runJavaScript(js)
 
     def show_emoji_selector(self):
         selector = EmojiSelector(self)

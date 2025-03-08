@@ -258,6 +258,9 @@ class MainWindow(QMainWindow):
                 has_children = self.project.has_children(document_path)
                 document_type = "Container" if has_children else "Document"
                 self.title_label.setText(f"DocuWeave - {self.project.name} - {name} ({document_type})")
+                
+                # Update selection in project sidebar
+                self.sidebar._restore_selection(self.sidebar.model.invisibleRootItem(), document_path)
             else:
                 # If content not found, create a new document
                 self.create_new_document()
@@ -385,7 +388,7 @@ class MainWindow(QMainWindow):
                 
                 # Load the current document if specified in project
                 if self.project.current_document:
-                    content = self.project.get_document(self.project.current_document)
+                    content = self.project.get_content(self.project.current_document)
                     if content is not None:
                         self.editor_widget.set_content(content)
                     else:

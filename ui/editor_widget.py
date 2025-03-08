@@ -29,8 +29,31 @@ class CustomWebEnginePage(QWebEnginePage):
             self.runJavaScript(js)
 
     def acceptNavigationRequest(self, url, _type, isMainFrame):
-        
-        # Allow data URLs and internal resources
+        # Handle internal document links with our custom scheme
+        if url.scheme() == 'docuweave':
+            if url.host() == 'document':
+                # Extract document path from the URL and properly decode it
+                doc_path = url.path().lstrip('/')
+                # URL decode the path to handle special characters
+                from urllib.parse import unquote
+                doc_path = unquote(doc_path)
+                print(f"Internal navigation to document: {doc_path}")
+                
+                # Find MainWindow to trigger document navigation
+                try:
+                    from PyQt5.QtWidgets import QApplication
+                    for widget in QApplication.topLevelWidgets():
+                        if widget.__class__.__name__ == "MainWindow":
+                            # Navigate to the document
+                            widget.change_document(doc_path)
+                            return False
+                except Exception as e:
+                    print(f"Error during document navigation: {str(e)}")
+                    return False
+                        
+                return False
+                
+        # Handle existing URL types
         if url.scheme() in ['data', 'qrc']:
             return True
         
@@ -120,6 +143,7 @@ class EditorWidget(QWidget):
         styles = """
         <style>
         a { color: var(--theme-link-color) !important; text-decoration: underline; cursor: pointer; }
+        a[href^="docuweave://"] { color: var(--theme-internal-link-color, #7cb342) !important; }
         @font-face { font-family: 'emoji'; src: local('Apple Color Emoji'), local('Segoe UI Emoji'); }
         img[alt="emoji"] { font-family: 'emoji'; }
         </style>

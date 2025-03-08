@@ -358,6 +358,57 @@ class Project:
             doc = Document(name=doc_name, content=doc_content, parent_path=parent_path)
             parent_doc.add_child(doc)
     
+    def update_document_links(self, old_path: str, new_path: str) -> None:
+        """Update docuweave://document/ links in all documents when a document path changes"""
+        import re
+        
+        # Create search pattern for links to the old path
+        # This handles both exact matches and child documents
+        # We need to handle URL-encoded paths as well
+        from urllib.parse import quote
+        
+        # Function to update links in a single document
+        def update_links_in_document(doc: Document):
+            if not doc.content:
+                return
+                
+            # Pattern for exact match
+            exact_pattern = f'docuweave://document/{re.escape(old_path)}"'
+            replacement = f'docuweave://document/{new_path}"'
+            doc.content = re.sub(exact_pattern, replacement, doc.content)
+            
+            # Pattern for child documents
+            if old_path:  # Only if old_path is not empty
+                child_pattern = f'docuweave://document/{re.escape(old_path)}/'
+                child_replacement = f'docuweave://document/{new_path}/'
+                doc.content = re.sub(child_pattern, child_replacement, doc.content)
+                
+            # URL-encoded versions
+            encoded_old_path = quote(old_path)
+            encoded_new_path = quote(new_path)
+            
+            exact_encoded_pattern = f'docuweave://document/{encoded_old_path}"'
+            encoded_replacement = f'docuweave://document/{encoded_new_path}"'
+            doc.content = re.sub(exact_encoded_pattern, encoded_replacement, doc.content)
+            
+            if old_path:  # Only if old_path is not empty
+                child_encoded_pattern = f'docuweave://document/{encoded_old_path}/'
+                child_encoded_replacement = f'docuweave://document/{encoded_new_path}/'
+                doc.content = re.sub(child_encoded_pattern, child_encoded_replacement, doc.content)
+        
+        # Process all documents recursively
+        def process_documents(doc):
+            # Update links in this document
+            if doc.name != "root":
+                update_links_in_document(doc)
+                
+            # Process children
+            for child in doc.children.values():
+                process_documents(child)
+        
+        # Start processing from root
+        process_documents(self.root_document)
+
     def rename_document(self, old_path: str, new_path: str) -> bool:
         """Rename a document or move it to a different parent"""
         # Skip root
@@ -395,6 +446,10 @@ class Project:
                 
                 # Update parent_path for all children
                 self._update_child_paths(doc, new_parent_path)
+                
+                # Update any internal links to this document
+                self.update_document_links(old_path, new_path)
+                
                 return True
         else:
             # Moving document between parents
@@ -428,6 +483,9 @@ class Project:
                     # Current document was inside the moved document
                     relative_path = self.current_document[len(old_path) + 1:]
                     self.current_document = f"{new_path}/{relative_path}"
+                
+                # Update any internal links to this document
+                self.update_document_links(old_path, new_path)
                 
                 return True
                 

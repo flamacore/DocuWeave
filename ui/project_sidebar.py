@@ -121,21 +121,29 @@ class ProjectSidebar(QTreeView):
     
     def _restore_selection(self, parent_item, path_to_select):
         """Recursively find and select an item by path"""
-        row_count = parent_item.rowCount()
-        for row in range(row_count):
-            item = parent_item.child(row)
-            if not item:
+        if not path_to_select:
+            return
+
+        # Iterate through the children of the parent item
+        for row in range(parent_item.rowCount()):
+            child = parent_item.child(row)
+            if not child:
                 continue
                 
-            if item.data(Qt.UserRole) == path_to_select:
-                index = self.model.indexFromItem(item)
+            item_path = child.data(Qt.UserRole)
+            if item_path == path_to_select:
+                # Found the item, select it and make sure it's visible
+                index = self.model.indexFromItem(child)
                 self.setCurrentIndex(index)
+                self.scrollTo(index)
                 return True
-            
-            # Check children
-            if self._restore_selection(item, path_to_select):
-                return True
-                
+            elif path_to_select.startswith(item_path + '/'):
+                # Path is under this item, expand it and recursively search
+                index = self.model.indexFromItem(child)
+                self.setExpanded(index, True)
+                if self._restore_selection(child, path_to_select):
+                    return True
+
         return False
 
     def _on_item_clicked(self, index):

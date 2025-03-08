@@ -53,6 +53,30 @@ QTreeView::item:selected {
     background-color: #094771;
 }
 
+/* Make branch indicators (arrows) always white */
+QTreeView::branch:has-children:!has-siblings:closed,
+QTreeView::branch:closed:has-children:has-siblings {
+    border-image: none;
+    image: url(resources/branch-closed.png);
+}
+
+QTreeView::branch:open:has-children:!has-siblings,
+QTreeView::branch:open:has-children:has-siblings {
+    border-image: none;
+    image: url(resources/branch-open.png);
+}
+
+QTreeView::branch:!has-children:!has-siblings:adjoins-item,
+QTreeView::branch:!has-children:has-siblings:adjoins-item {
+    border-image: none;
+    image: url(resources/branch-end.png);
+}
+
+QTreeView::branch:!has-children:has-siblings:!adjoins-item {
+    border-image: none;
+    image: url(resources/branch-more.png);
+}
+
 /* Context Menu */
 QMenu {
     background-color: #2e2e2e;
