@@ -12,26 +12,12 @@ Welcome to the **Tech Alpha Release** of DocuWeave. This release incorporates se
 
 ### What's New?
 
-- **Enhanced Security & Trust**  
-  Code signed Windows executables ensure authenticity and eliminate security warnings.
-
-- **High DPI and Scaling**  
-  Improved support for high-resolution displays ensures that all UI elements render crisply.
-
-- **Enhanced Project Management**  
-  Experience faster loading, saving, and renaming of projects with robust file handling and auto-cleanup of orphaned files.
 
 - **Document Hierarchy & Linking**  
   - Create nested document structures with parent-child relationships
   - Internal document linking with automatic path updates when documents are renamed
   - Improved navigation between related documents
   - Automatic sidebar selection when following document links
-
-- **Revamped Editing Experience**  
-  - New toolbar icons and a refined layout.
-  - Table insertion support for richer content.
-  - Real-time preview updates with a responsive editing interface.
-  - Improved emoji support with SVG-based emoji picker and better rendering.
 
 - **Performance & Stability**  
   Optimizations across the board result in quicker startup times, more efficient resource usage, and better overall responsiveness.
