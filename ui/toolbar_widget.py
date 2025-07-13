@@ -264,6 +264,21 @@ class ToolbarWidget(QFrame):
         table_button.clicked.connect(self.insert_table_dialog)
         layout.addWidget(table_button)
 
+        # Vertical separator before AI tools
+        separator3 = QFrame()
+        separator3.setObjectName("toolbarSeparator")
+        separator3.setFrameShape(QFrame.VLine)
+        separator3.setFrameShadow(QFrame.Sunken)
+        layout.addWidget(separator3)
+
+        # AI Summarize button
+        ai_summarize_button = ToolbarButton()
+        ai_summarize_button.setIcon(getColoredIcon(get_resource_path("resources/ai_summarize.svg")))
+        ai_summarize_button.setIconSize(QSize(28,28))
+        ai_summarize_button.setToolTip("Summarize with AI")
+        ai_summarize_button.clicked.connect(self.show_ai_summarize_dialog)
+        layout.addWidget(ai_summarize_button)
+
         layout.addStretch()
         self.setStyleSheet("background-color: #1e1e1e;")
 
@@ -469,3 +484,89 @@ class ToolbarWidget(QFrame):
         if dialog.exec_():
             rows, cols = dialog.get_table_dimensions()
             self.editor_widget.insert_table(rows, cols)
+
+    def show_ai_summarize_dialog(self):
+        """Show AI summarization dialog"""
+        from ui.ai_summarize_dialog import AISummarizeDialog
+        from PyQt5.QtCore import Qt
+        
+        # Get current document content
+        def handle_content(content):
+            if not content or content.strip() == "":
+                from PyQt5.QtWidgets import QMessageBox
+                QMessageBox.warning(
+                    self,
+                    "No Content",
+                    "There is no content in the current document to summarize.",
+                    QMessageBox.Ok
+                )
+                return
+            
+            # Remove HTML tags for cleaner text processing
+            import re
+            # Basic HTML tag removal - you might want to use a proper HTML parser for better results
+            clean_content = re.sub(r'<[^>]+>', '', content)
+            clean_content = clean_content.replace('&nbsp;', ' ').replace('&lt;', '<').replace('&gt;', '>').replace('&amp;', '&')
+            clean_content = ' '.join(clean_content.split())  # Normalize whitespace
+            
+            if len(clean_content.strip()) < 50:
+                from PyQt5.QtWidgets import QMessageBox
+                QMessageBox.warning(
+                    self,
+                    "Content Too Short", 
+                    "The document content is too short to generate a meaningful summary.",
+                    QMessageBox.Ok
+                )
+                return
+            
+            # Show the AI summarization dialog
+            dialog = AISummarizeDialog(clean_content, self)
+            dialog.setWindowModality(Qt.ApplicationModal)
+            
+            if dialog.exec_():
+                summary = dialog.get_summary()
+                if summary:
+                    # Insert the summary into the document
+                    self.insert_ai_summary(summary)
+        
+        # Get content from the editor
+        self.editor_widget.web_view.page().runJavaScript(
+            "document.getElementById('editor').innerHTML;",
+            handle_content
+        )
+    
+    def insert_ai_summary(self, summary):
+        """Insert AI-generated summary into the document"""
+        # Escape the summary content for JavaScript
+        import json
+        escaped_summary = json.dumps(summary)
+        
+        # Format the summary nicely
+        js_code = f"""
+        (function() {{
+            var summary = {escaped_summary};
+            var summaryLines = summary.split('\\n').filter(line => line.trim() !== '');
+            var paragraphs = summaryLines.map(line => '<p>' + line + '</p>').join('');
+            
+            var formattedSummary = `
+                <div style="border-left: 4px solid #4CAF50; padding-left: 16px; margin: 16px 0; background-color: rgba(76, 175, 80, 0.1); border-radius: 4px;">
+                    <h4 style="color: #4CAF50; margin-top: 8px;">📝 AI Summary</h4>
+                    ${{paragraphs}}
+                </div>
+            `;
+            
+            var selection = window.getSelection();
+            var range = selection.getRangeAt(0);
+            var summaryElement = document.createElement('div');
+            summaryElement.innerHTML = formattedSummary;
+            range.insertNode(summaryElement);
+            
+            // Move cursor after the inserted summary
+            range.setStartAfter(summaryElement);
+            range.setEndAfter(summaryElement);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }})();
+        """
+        
+        self.editor_widget.web_view.page().runJavaScript(js_code)

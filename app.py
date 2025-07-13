@@ -35,8 +35,11 @@ def main():
     # Hide console if not in debug mode
     if not args.debug and sys.platform == 'win32':
         import win32gui, win32con
-        hwnd = win32gui.GetForegroundWindow()
-        win32gui.ShowWindow(hwnd, win32con.SW_HIDE)
+        import ctypes
+        # Get the console window specifically, not the foreground window
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+        if hwnd != 0:  # Only hide if console window exists
+            win32gui.ShowWindow(hwnd, win32con.SW_HIDE)
 
     app = QApplication(sys.argv)
     

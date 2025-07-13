@@ -363,6 +363,93 @@ QDialog#startupDialog QLabel {
     font-weight: bold;
 }
 
+/* AI Summarize Dialog */
+QDialog#aiSummarizeDialog {
+    background-color: #2e2e2e;
+    color: white;
+    border: 1px solid #555;
+}
+
+QDialog#aiSummarizeDialog QPushButton {
+    font-size: 14px;
+    padding: 8px 16px;
+    margin: 2px;
+    background-color: #3e3e3e;
+}
+
+QDialog#aiSummarizeDialog QPushButton:hover {
+    background-color: #4e4e4e;
+}
+
+QDialog#aiSummarizeDialog QPushButton:disabled {
+    background-color: #2e2e2e;
+    color: #666666;
+}
+
+QDialog#aiSummarizeDialog QLabel {
+    color: white;
+    font-weight: normal;
+}
+
+QDialog#aiSummarizeDialog QLineEdit {
+    background-color: #3e3e3e;
+    color: white;
+    border: 1px solid #555;
+    padding: 8px;
+    border-radius: 5px;
+    selection-background-color: #094771;
+}
+
+QDialog#aiSummarizeDialog QComboBox {
+    background-color: #3e3e3e;
+    color: white;
+    border: 1px solid #555;
+    padding: 8px;
+    border-radius: 5px;
+}
+
+QDialog#aiSummarizeDialog QComboBox::drop-down {
+    border: none;
+    background-color: #4e4e4e;
+    border-radius: 3px;
+}
+
+QDialog#aiSummarizeDialog QComboBox QAbstractItemView {
+    background-color: #3e3e3e;
+    color: white;
+    border: 1px solid #555;
+    selection-background-color: #094771;
+}
+
+QDialog#aiSummarizeDialog QSpinBox {
+    background-color: #3e3e3e;
+    color: white;
+    border: 1px solid #555;
+    padding: 8px;
+    border-radius: 5px;
+}
+
+QDialog#aiSummarizeDialog QTextEdit {
+    background-color: #3e3e3e;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 5px;
+    selection-background-color: #094771;
+}
+
+QDialog#aiSummarizeDialog QProgressBar {
+    background-color: #3e3e3e;
+    border: 1px solid #555;
+    border-radius: 5px;
+    text-align: center;
+    color: white;
+}
+
+QDialog#aiSummarizeDialog QProgressBar::chunk {
+    background-color: #4CAF50;
+    border-radius: 4px;
+}
+
 /* Vertical separator style */
 QFrame[frameShape="VLine"] {
     background-color: white;
