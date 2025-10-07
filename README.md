@@ -124,3 +124,5 @@ Happy editing and thank you for testing DocuWeave Tech Alpha!
 
 *Uicons by [Flaticon](https://www.flaticon.com/uicons)*
 *Emojis by [Twitter Emoji (Twemoji)](https://github.com/twitter/twemoji)*
+
+Check Licensing in LICENSE.txt
