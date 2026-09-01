@@ -2,13 +2,14 @@ from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton,
                            QLineEdit, QLabel, QFileDialog, QRadioButton, 
                            QButtonGroup, QWidget)
 from PyQt5.QtCore import Qt
+from ui.scale import px, scaled_css
 
 class ImageDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName("imageDialog")  # Set object name for QSS styling
         self.setWindowTitle("Insert Image")
-        self.setFixedSize(600, 300)  # Increased size
+        self.setFixedSize(px(600), px(300))  # Increased size
         # Change window flags to standard dialog flags instead of frameless
         self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint)
         self.mode = "file"  # Default mode
@@ -21,7 +22,7 @@ class ImageDialog(QDialog):
         
         # Welcome text
         title = QLabel("Insert Image")
-        title.setStyleSheet("font-size: 24px; margin-bottom: 20px;")
+        title.setStyleSheet(scaled_css("font-size: 24px; margin-bottom: 20px;"))
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
         
@@ -36,7 +37,7 @@ class ImageDialog(QDialog):
         
         # Set font size for radio buttons
         for radio in (self.file_radio, self.url_radio):
-            radio.setStyleSheet("font-size: 16px;")
+            radio.setStyleSheet(scaled_css("font-size: 16px;"))
         
         # File selection
         self.file_widget = QWidget()
@@ -60,8 +61,8 @@ class ImageDialog(QDialog):
         
         # Set font size and height for line edits
         for edit in (self.file_path_edit, self.url_edit):
-            edit.setStyleSheet("font-size: 14px;")
-            edit.setFixedHeight(35)
+            edit.setStyleSheet(scaled_css("font-size: 14px;"))
+            edit.setFixedHeight(px(35))
         
         # Connect radio buttons
         self.file_radio.toggled.connect(self.toggle_mode)
@@ -78,8 +79,8 @@ class ImageDialog(QDialog):
         
         # Set size for buttons
         for btn in (self.browse_button, self.ok_button, self.cancel_button):
-            btn.setFixedHeight(35)
-            btn.setStyleSheet("font-size: 14px;")
+            btn.setFixedHeight(px(35))
+            btn.setStyleSheet(scaled_css("font-size: 14px;"))
         
         # Add stretch before buttons to push them to bottom
         layout.addStretch()

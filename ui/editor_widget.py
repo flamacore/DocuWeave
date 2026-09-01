@@ -57,8 +57,10 @@ class CustomWebEnginePage(QWebEnginePage):
         if url.scheme() in ['data', 'qrc']:
             return True
         
-        # Handle external URLs
-        if url.scheme() in ['http', 'https']:
+        # Handle external URLs. Only real navigations of the document leave the
+        # app; resource loads (images and other embedded content) arrive here on
+        # a subframe and must be allowed to load in place.
+        if url.scheme() in ['http', 'https'] and isMainFrame:
             print(f"Opening in system browser: {url.toString()}")
             QDesktopServices.openUrl(url)
             return False

@@ -2,6 +2,7 @@ import sys
 import ctypes
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QRadioButton, QButtonGroup
 from PyQt5.QtCore import Qt
+from ui.scale import px, scaled_css
 
 # Enable high DPI awareness on Windows
 if sys.platform == "win32":
@@ -17,7 +18,7 @@ class LinkTypeDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Insert Link")
         # Set fixed size similar to table dialog
-        self.setFixedSize(600, 300)
+        self.setFixedSize(px(600), px(300))
         self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint)
         
         layout = QVBoxLayout(self)
@@ -26,13 +27,13 @@ class LinkTypeDialog(QDialog):
         
         # Title
         title = QLabel("Insert Link")
-        title.setStyleSheet("font-size: 24px; margin-bottom: 20px;")
+        title.setStyleSheet(scaled_css("font-size: 24px; margin-bottom: 20px;"))
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
         
         # Instructions
         instructions = QLabel("Select link type:")
-        instructions.setStyleSheet("font-size: 16px;")
+        instructions.setStyleSheet(scaled_css("font-size: 16px;"))
         layout.addWidget(instructions)
         
         # Radio button group
@@ -41,29 +42,29 @@ class LinkTypeDialog(QDialog):
         # External URL option
         external_radio = QRadioButton("External URL")
         external_radio.setChecked(True)  # Default selection
-        external_radio.setStyleSheet("font-size: 14px;")
+        external_radio.setStyleSheet(scaled_css("font-size: 14px;"))
         self.radio_group.addButton(external_radio, 0)
         layout.addWidget(external_radio)
         
         # Description for external URL
         external_desc = QLabel("   Link to a website or external resource")
-        external_desc.setStyleSheet("font-size: 14px; color: #888;")
+        external_desc.setStyleSheet(scaled_css("font-size: 14px; color: #888;"))
         layout.addWidget(external_desc)
         
         # Add some spacing
         spacer = QLabel("")
-        spacer.setFixedHeight(10)
+        spacer.setFixedHeight(px(10))
         layout.addWidget(spacer)
         
         # Internal document option
         internal_radio = QRadioButton("Internal Document")
-        internal_radio.setStyleSheet("font-size: 14px;")
+        internal_radio.setStyleSheet(scaled_css("font-size: 14px;"))
         self.radio_group.addButton(internal_radio, 1)
         layout.addWidget(internal_radio)
         
         # Description for internal document
         internal_desc = QLabel("   Link to another document within this project")
-        internal_desc.setStyleSheet("font-size: 14px; color: #888;")
+        internal_desc.setStyleSheet(scaled_css("font-size: 14px; color: #888;"))
         layout.addWidget(internal_desc)
         
         layout.addStretch(1)  # Push buttons to bottom
@@ -75,8 +76,8 @@ class LinkTypeDialog(QDialog):
         
         # Set button styles similar to other dialogs
         for btn in (self.ok_button, self.cancel_button):
-            btn.setStyleSheet("font-size: 14px;")
-            btn.setFixedHeight(35)
+            btn.setStyleSheet(scaled_css("font-size: 14px;"))
+            btn.setFixedHeight(px(35))
             
         button_layout.addStretch()
         button_layout.addWidget(self.ok_button)

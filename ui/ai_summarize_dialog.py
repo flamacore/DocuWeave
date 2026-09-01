@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QPushButton,
                            QMessageBox, QGroupBox, QSpinBox, QWidget)
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QFont
+from ui.scale import px, scaled_css
 
 class OllamaWorker(QThread):
     """Worker thread for Ollama API calls to avoid blocking the UI"""
@@ -69,7 +70,7 @@ class AISummarizeDialog(QDialog):
         # Use the same pattern as other dialogs
         self.setObjectName("aiSummarizeDialog")
         self.setWindowTitle("AI Summarization")
-        self.setFixedSize(700, 600)
+        self.setFixedSize(px(700), px(600))
         self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint)
         
         self.init_ui()
@@ -81,7 +82,7 @@ class AISummarizeDialog(QDialog):
         
         # Title
         title = QLabel("AI Summarization")
-        title.setStyleSheet("font-size: 24px; margin-bottom: 20px;")
+        title.setStyleSheet(scaled_css("font-size: 24px; margin-bottom: 20px;"))
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
         
@@ -91,14 +92,14 @@ class AISummarizeDialog(QDialog):
         # Ollama URL
         url_layout = QHBoxLayout()
         url_label = QLabel("Ollama URL:")
-        url_label.setStyleSheet("font-size: 16px;")
-        url_label.setFixedWidth(120)
+        url_label.setStyleSheet(scaled_css("font-size: 16px;"))
+        url_label.setFixedWidth(px(120))
         url_layout.addWidget(url_label)
         
         self.url_input = QLineEdit("http://localhost:11434")
         self.url_input.setPlaceholderText("Enter Ollama server URL...")
-        self.url_input.setStyleSheet("font-size: 14px;")
-        self.url_input.setFixedHeight(35)
+        self.url_input.setStyleSheet(scaled_css("font-size: 14px;"))
+        self.url_input.setFixedHeight(px(35))
         url_layout.addWidget(self.url_input)
         
         config_layout.addLayout(url_layout)
@@ -106,14 +107,14 @@ class AISummarizeDialog(QDialog):
         # Model selection
         model_layout = QHBoxLayout()
         model_label = QLabel("Model:")
-        model_label.setStyleSheet("font-size: 16px;")
-        model_label.setFixedWidth(120)
+        model_label.setStyleSheet(scaled_css("font-size: 16px;"))
+        model_label.setFixedWidth(px(120))
         model_layout.addWidget(model_label)
         
         self.model_combo = QComboBox()
         self.model_combo.setEditable(True)
-        self.model_combo.setStyleSheet("font-size: 14px;")
-        self.model_combo.setFixedHeight(35)
+        self.model_combo.setStyleSheet(scaled_css("font-size: 14px;"))
+        self.model_combo.setFixedHeight(px(35))
         # Default models
         self.model_combo.addItems([
             "llama3.2:latest",
@@ -128,8 +129,8 @@ class AISummarizeDialog(QDialog):
         
         # Refresh button
         refresh_btn = QPushButton("Refresh Models")
-        refresh_btn.setStyleSheet("font-size: 14px;")
-        refresh_btn.setFixedHeight(35)
+        refresh_btn.setStyleSheet(scaled_css("font-size: 14px;"))
+        refresh_btn.setFixedHeight(px(35))
         refresh_btn.clicked.connect(self.refresh_models)
         model_layout.addWidget(refresh_btn)
         
@@ -140,13 +141,13 @@ class AISummarizeDialog(QDialog):
         
         # Summary type
         type_label = QLabel("Summary Type:")
-        type_label.setStyleSheet("font-size: 16px;")
-        type_label.setFixedWidth(120)
+        type_label.setStyleSheet(scaled_css("font-size: 16px;"))
+        type_label.setFixedWidth(px(120))
         options_layout.addWidget(type_label)
         
         self.type_combo = QComboBox()
-        self.type_combo.setStyleSheet("font-size: 14px;")
-        self.type_combo.setFixedHeight(35)
+        self.type_combo.setStyleSheet(scaled_css("font-size: 14px;"))
+        self.type_combo.setFixedHeight(px(35))
         self.type_combo.addItems([
             "Brief Summary",
             "Detailed Summary", 
@@ -157,13 +158,13 @@ class AISummarizeDialog(QDialog):
         
         # Max length
         length_label = QLabel("Max Length:")
-        length_label.setStyleSheet("font-size: 16px;")
-        length_label.setFixedWidth(100)
+        length_label.setStyleSheet(scaled_css("font-size: 16px;"))
+        length_label.setFixedWidth(px(100))
         options_layout.addWidget(length_label)
         
         self.length_spin = QSpinBox()
-        self.length_spin.setStyleSheet("font-size: 14px;")
-        self.length_spin.setFixedHeight(35)
+        self.length_spin.setStyleSheet(scaled_css("font-size: 14px;"))
+        self.length_spin.setFixedHeight(px(35))
         self.length_spin.setMinimum(50)
         self.length_spin.setMaximum(1000)
         self.length_spin.setValue(200)
@@ -176,25 +177,25 @@ class AISummarizeDialog(QDialog):
         # Progress bar
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
-        self.progress_bar.setFixedHeight(25)
+        self.progress_bar.setFixedHeight(px(25))
         layout.addWidget(self.progress_bar)
         
         # Progress label
         self.progress_label = QLabel("")
-        self.progress_label.setStyleSheet("font-size: 14px;")
+        self.progress_label.setStyleSheet(scaled_css("font-size: 14px;"))
         self.progress_label.setAlignment(Qt.AlignCenter)
         self.progress_label.setVisible(False)
         layout.addWidget(self.progress_label)
         
         # Result area
         result_label = QLabel("Generated Summary:")
-        result_label.setStyleSheet("font-size: 16px; margin-top: 10px;")
+        result_label.setStyleSheet(scaled_css("font-size: 16px; margin-top: 10px;"))
         layout.addWidget(result_label)
         
         self.result_text = QTextEdit()
         self.result_text.setReadOnly(True)
         self.result_text.setPlaceholderText("Generated summary will appear here...")
-        self.result_text.setStyleSheet("font-size: 14px;")
+        self.result_text.setStyleSheet(scaled_css("font-size: 14px;"))
         self.result_text.setMinimumHeight(200)
         layout.addWidget(self.result_text)
         
@@ -205,21 +206,21 @@ class AISummarizeDialog(QDialog):
         button_layout = QHBoxLayout()
         
         self.generate_btn = QPushButton("Generate Summary")
-        self.generate_btn.setStyleSheet("font-size: 14px;")
-        self.generate_btn.setFixedHeight(35)
+        self.generate_btn.setStyleSheet(scaled_css("font-size: 14px;"))
+        self.generate_btn.setFixedHeight(px(35))
         self.generate_btn.clicked.connect(self.generate_summary)
         button_layout.addWidget(self.generate_btn)
         
         self.insert_btn = QPushButton("Insert into Document")
-        self.insert_btn.setStyleSheet("font-size: 14px;")
-        self.insert_btn.setFixedHeight(35)
+        self.insert_btn.setStyleSheet(scaled_css("font-size: 14px;"))
+        self.insert_btn.setFixedHeight(px(35))
         self.insert_btn.clicked.connect(self.accept)
         self.insert_btn.setEnabled(False)
         button_layout.addWidget(self.insert_btn)
         
         cancel_btn = QPushButton("Cancel")
-        cancel_btn.setStyleSheet("font-size: 14px;")
-        cancel_btn.setFixedHeight(35)
+        cancel_btn.setStyleSheet(scaled_css("font-size: 14px;"))
+        cancel_btn.setFixedHeight(px(35))
         cancel_btn.clicked.connect(self.reject)
         button_layout.addWidget(cancel_btn)
         

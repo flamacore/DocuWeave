@@ -2,6 +2,7 @@ import sys
 import ctypes
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
 from PyQt5.QtCore import Qt
+from ui.scale import px, scaled_css
 
 # Enable high DPI awareness on Windows
 if sys.platform == "win32":
@@ -17,7 +18,7 @@ class ExternalLinkDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("External Link")
         # Set fixed size similar to table dialog
-        self.setFixedSize(600, 300)
+        self.setFixedSize(px(600), px(300))
         self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint)
         
         layout = QVBoxLayout(self)
@@ -26,24 +27,24 @@ class ExternalLinkDialog(QDialog):
         
         # Title
         title = QLabel("External Link")
-        title.setStyleSheet("font-size: 24px; margin-bottom: 20px;")
+        title.setStyleSheet(scaled_css("font-size: 24px; margin-bottom: 20px;"))
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
         
         # Instructions
         instructions = QLabel("Enter URL:")
-        instructions.setStyleSheet("font-size: 16px;")
+        instructions.setStyleSheet(scaled_css("font-size: 16px;"))
         layout.addWidget(instructions)
         
         # URL input field
         self.url_input = QLineEdit(initial_url)
-        self.url_input.setStyleSheet("font-size: 14px; height: 35px; padding: 0 10px;")
+        self.url_input.setStyleSheet(scaled_css("font-size: 14px; height: 35px; padding: 0 10px;"))
         self.url_input.setPlaceholderText("https://example.com")
         layout.addWidget(self.url_input)
         
         # Help text
         help_text = QLabel("URLs will automatically have 'http://' added if not specified.")
-        help_text.setStyleSheet("font-size: 14px; color: #888;")
+        help_text.setStyleSheet(scaled_css("font-size: 14px; color: #888;"))
         layout.addWidget(help_text)
         
         layout.addStretch(1)  # Push buttons to bottom
@@ -55,8 +56,8 @@ class ExternalLinkDialog(QDialog):
         
         # Set button styles similar to other dialogs
         for btn in (self.ok_button, self.cancel_button):
-            btn.setStyleSheet("font-size: 14px;")
-            btn.setFixedHeight(35)
+            btn.setStyleSheet(scaled_css("font-size: 14px;"))
+            btn.setFixedHeight(px(35))
             
         button_layout.addStretch()
         button_layout.addWidget(self.ok_button)

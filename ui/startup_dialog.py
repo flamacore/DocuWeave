@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QPushButton, QFileDialog,
                            QLabel, QWidget)
 from PyQt5.QtCore import Qt
+from ui.scale import px
 
 class StartupDialog(QDialog):
     def __init__(self, parent=None):
@@ -13,7 +14,7 @@ class StartupDialog(QDialog):
         layout = QVBoxLayout(self)
         
         welcome = QLabel("Welcome to DocuWeave")
-        welcome.setStyleSheet("font-size: 24px; margin: 20px;")
+        welcome.setStyleSheet(f"font-size: {px(24)}px; margin: {px(20)}px;")
         welcome.setAlignment(Qt.AlignCenter)
         layout.addWidget(welcome)
         

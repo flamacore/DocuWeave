@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
                             QPushButton, QTreeView, QAbstractItemView)
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QIcon
 from PyQt5.QtCore import Qt, pyqtSignal
+from ui.scale import px, scaled_css
 
 # Enable high DPI awareness on Windows
 if sys.platform == "win32":
@@ -22,7 +23,7 @@ class InternalLinkDialog(QDialog):
         
         self.setWindowTitle("Link to Document")
         # Set fixed size similar to other dialogs
-        self.setFixedSize(600, 400)
+        self.setFixedSize(px(600), px(400))
         self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint)
         
         layout = QVBoxLayout(self)
@@ -31,13 +32,13 @@ class InternalLinkDialog(QDialog):
         
         # Title
         title = QLabel("Select Document to Link")
-        title.setStyleSheet("font-size: 24px; margin-bottom: 20px;")
+        title.setStyleSheet(scaled_css("font-size: 24px; margin-bottom: 20px;"))
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
         
         # Instructions
         instructions = QLabel("Select a document from your project to create an internal link:")
-        instructions.setStyleSheet("font-size: 14px;")
+        instructions.setStyleSheet(scaled_css("font-size: 14px;"))
         layout.addWidget(instructions)
         
         # Document tree
@@ -45,7 +46,7 @@ class InternalLinkDialog(QDialog):
         self.tree_view.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.tree_view.setSelectionMode(QAbstractItemView.SingleSelection)
         self.tree_view.setHeaderHidden(True)
-        self.tree_view.setStyleSheet("font-size: 14px;")
+        self.tree_view.setStyleSheet(scaled_css("font-size: 14px;"))
         layout.addWidget(self.tree_view)
         
         # Populate tree with documents
@@ -58,8 +59,8 @@ class InternalLinkDialog(QDialog):
         
         # Style buttons consistently with other dialogs
         for btn in (self.link_button, self.cancel_button):
-            btn.setStyleSheet("font-size: 14px;")
-            btn.setFixedHeight(35)
+            btn.setStyleSheet(scaled_css("font-size: 14px;"))
+            btn.setFixedHeight(px(35))
             
         button_layout.addStretch()
         button_layout.addWidget(self.link_button)

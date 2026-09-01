@@ -1,6 +1,6 @@
 import os  # Added import for os
 import sys  # Added import for sys.exit
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QFrame, QHBoxLayout, QMenu, QSplitter, QLabel, QApplication, QMenuBar, QShortcut, QInputDialog
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QFrame, QHBoxLayout, QMenu, QSplitter, QLabel, QApplication, QMenuBar, QShortcut, QInputDialog, QActionGroup, QMessageBox
 from PyQt5.QtCore import Qt, QPoint
 from PyQt5.QtGui import QFont, QCursor, QKeySequence, QIcon  # Remove QShortcut from here
 from PyQt5.QtWebEngineWidgets import QWebEngineView
@@ -12,6 +12,8 @@ from .toolbar_widget import ToolbarWidget
 from .project_sidebar import ProjectSidebar
 from .startup_dialog import StartupDialog  # Add this import
 from ui.hover_label import HoverLabel  # new import
+from ui import scale
+from ui.scale import px, scaled_css
 import colorama
 colorama.init(autoreset=True)
 
@@ -39,7 +41,7 @@ class MainWindow(QMainWindow):
         self._resizing = False
         self._resize_start_pos = None
         self._resize_start_rect = None
-        self._margin = 5  # pixels for resize area
+        self._margin = px(5)  # pixels for resize area
         
         self.setWindowTitle("DocuWeave")
         
@@ -54,7 +56,7 @@ class MainWindow(QMainWindow):
         # Load and apply the stylesheet
         style_path = os.path.join(os.path.dirname(__file__), "..", "resources", "dark_theme.qss")
         with open(style_path, 'r') as f:
-            self.setStyleSheet(f.read())
+            self.setStyleSheet(scaled_css(f.read()))
         
         # Initialize core components
         self.editor = Editor()
@@ -85,27 +87,27 @@ class MainWindow(QMainWindow):
         title_bar.setObjectName("titleBar")
         layout = QHBoxLayout(title_bar)
         layout.setSpacing(0)  # Remove spacing between elements
-        layout.setContentsMargins(10, 0, 10, 0)  # Remove vertical margins
+        layout.setContentsMargins(px(10), 0, px(10), 0)  # Remove vertical margins
         
         # Create icon for the title with transparency
         icon = QIcon(os.path.join(os.path.dirname(__file__), "..", "resources", "icon.ico"))
         icon_label = QLabel()
         icon_label.setObjectName("titleIcon")
-        pixmap = icon.pixmap(16, 16)  # Smaller icon size
+        pixmap = icon.pixmap(px(16), px(16))  # Smaller icon size
         if not pixmap.isNull():
             icon_label.setPixmap(pixmap)
-        icon_label.setFixedSize(20, 40)  # Width includes small padding
+        icon_label.setFixedSize(px(20), px(40))  # Width includes small padding
         icon_label.setAlignment(Qt.AlignCenter)
         icon_label.setAttribute(Qt.WA_TranslucentBackground)  # Enable transparency
         layout.addWidget(icon_label)
         
         # Add spacing between icon and text
-        layout.addSpacing(4)
+        layout.addSpacing(px(4))
         
         # Add title label
         self.title_label = HoverLabel(f"DocuWeave - {self.project.name}")
         self.title_label.setObjectName("titleLabel")
-        self.title_label.setFont(QFont("Segoe UI", 12))
+        self.title_label.setFont(QFont("Segoe UI", px(12)))
         self.title_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         self.title_label.mousePressEvent = self.show_menu
         layout.addWidget(self.title_label)
@@ -118,14 +120,14 @@ class MainWindow(QMainWindow):
         close_btn = QPushButton("×")
         for btn in (min_btn, max_btn, close_btn):
             btn.setObjectName("windowButton")
-            btn.setFixedSize(30, 30)
+            btn.setFixedSize(px(30), px(30))
             layout.addWidget(btn)
         
         min_btn.clicked.connect(self.showMinimized)
         max_btn.clicked.connect(self._toggle_maximized)
         close_btn.clicked.connect(self.close)
         
-        title_bar.setFixedHeight(50)
+        title_bar.setFixedHeight(px(50))
         return title_bar
 
     def update_title_bar(self):
@@ -342,6 +344,35 @@ class MainWindow(QMainWindow):
         save_project.setShortcut('Ctrl+S')
         save_project.triggered.connect(self.save_project)
         # ...existing code...
+
+        view_menu = menu.addMenu('View')
+        self._setup_scale_menu(view_menu.addMenu('UI Scale'))
+
+    def _setup_scale_menu(self, scale_menu):
+        """UI scale choices. None is automatic detection from the screen size."""
+        current = scale.settings().value(scale.SETTINGS_KEY, "auto")
+        group = QActionGroup(scale_menu)
+        group.setExclusive(True)
+        for choice in scale.MENU_CHOICES:
+            if choice is None:
+                label = f'Auto ({int(scale.auto_scale(self._logical_screen_height()) * 100)}%)'
+            else:
+                label = f'{int(choice * 100)}%'
+            action = scale_menu.addAction(label)
+            action.setCheckable(True)
+            action.setChecked(str(current) == ("auto" if choice is None else str(choice)))
+            action.triggered.connect(lambda _checked, value=choice: self._set_ui_scale(value))
+            group.addAction(action)
+
+    def _logical_screen_height(self):
+        return QApplication.primaryScreen().availableGeometry().height()
+
+    def _set_ui_scale(self, value):
+        scale.save_scale(value)
+        QMessageBox.information(
+            self, "UI Scale",
+            "Restart DocuWeave to apply the new UI scale."
+        )
 
     def save_markdown(self):
         """Update current document in project"""
